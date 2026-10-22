@@ -43,18 +43,26 @@ def main():
             body=frame.locator("body").inner_text(timeout=6000)
             idx=body.find("RESULT / RESEARCH SHEET")
             out["result_text"]=body[max(0,idx):max(0,idx)+2500]
-            if "Example Domain" in out["result_text"]:
-                out["checks"]["real_url_extract"]="PASS"
-                with page.expect_download(timeout=30000) as download:
-                    frame.get_by_role("button",name="修正結果をCSVで保存").click()
-                dest=OUT/"real-url-result.csv"
-                download.value.save_as(dest)
-                content=dest.read_text(encoding="utf-8-sig")
-                if TARGET not in content or "Example Domain" not in content:
-                    raise AssertionError("Exported CSV lacks fetched URL and title")
-                out["checks"]["real_url_csv"]="PASS"
-            else:
-                out["checks"]["real_url_extract"]="FAIL"
+            # Streamlit data_editor cells are not exposed as normal body text.
+            # Validate the exported record rather than a brittle DOM substring.
+            import csv
+            with page.expect_download(timeout=30000) as download:
+                frame.get_by_role("button",name="修正結果をCSVで保存").click()
+            dest=OUT/"real-url-result.csv"
+            download.value.save_as(dest)
+            with dest.open(encoding="utf-8-sig",newline="") as fp:
+                rows=list(csv.DictReader(fp))
+            out["csv_rows"]=rows
+            if len(rows)!=1:
+                raise AssertionError(f"Expected one real URL row, got {len(rows)}")
+            if rows[0].get("参照URL")!=TARGET:
+                raise AssertionError(f"CSV URL mismatch: {rows[0].get('参照URL')}")
+            if "Example Domain" not in rows[0].get("ページタイトル",""):
+                raise AssertionError(f"HTML title extraction mismatch: {rows[0].get('ページタイトル')}")
+            if rows[0].get("入力元")!="公開URL":
+                raise AssertionError("CSV row came from a sample, not a fetched public URL")
+            out["checks"]["real_url_extract"]="PASS"
+            out["checks"]["real_url_csv"]="PASS"
         except Exception as exc:
             out["error"]=type(exc).__name__+": "+str(exc)[:500]
             try:
