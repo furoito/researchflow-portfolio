@@ -24,17 +24,37 @@ def main():
         try:
             response = page.goto(URL, wait_until="domcontentloaded", timeout=60000)
             result["http_status"] = response.status if response else None
-            page.get_by_text("情報を取り込む", exact=True).wait_for(timeout=90000)
+            app_frame = None
+            for _ in range(20):
+                for candidate in page.frames:
+                    try:
+                        if candidate.get_by_role("button", name="情報収集を実行").count():
+                            app_frame = candidate
+                            break
+                    except Exception:
+                        pass
+                if app_frame is not None:
+                    break
+                page.mouse.wheel(0, 850)
+                page.wait_for_timeout(1000)
+            if app_frame is None:
+                for candidate in page.frames:
+                    try:
+                        print("FRAME", candidate.url, "TEXT", repr(candidate.locator("body").inner_text(timeout=3000)[-600:]))
+                    except Exception as err:
+                        print("FRAME ERROR", candidate.url, str(err)[:220])
+                raise AssertionError("Streamlit action button not found in any frame after scrolling")
+            print("APP FRAME", app_frame.url)
             result["checks"]["app_rendered"] = "PASS"
             page.screenshot(path=str(OUT / "app.png"), full_page=True)
 
-            page.get_by_role("button", name="情報収集を実行").click()
-            page.get_by_role("heading", name="収集・分類結果").wait_for(timeout=90000)
+            app_frame.get_by_role("button", name="情報収集を実行").click()
+            app_frame.get_by_role("heading", name="収集・分類結果").wait_for(timeout=90000)
             result["checks"]["local_sample_pipeline"] = "PASS"
             page.screenshot(path=str(OUT / "result.png"), full_page=True)
 
             with page.expect_download(timeout=30000) as download:
-                page.get_by_role("button", name="修正結果をCSVで保存").click()
+                app_frame.get_by_role("button", name="修正結果をCSVで保存").click()
             output = OUT / "sample.csv"
             download.value.save_as(output)
             rows = list(csv.DictReader(StringIO(output.read_bytes().decode("utf-8-sig"))))
@@ -47,12 +67,12 @@ def main():
 
             # Diagnostic: external sites may prohibit bots via robots.txt or 403.
             try:
-                page.get_by_text("公開URLを取得", exact=True).first.click(timeout=12000)
-                page.get_by_role("textbox", name="調査したいページのURL（1行に1件、最大8件）").fill("https://example.com/")
-                page.get_by_role("button", name="情報収集を実行").click()
-                page.get_by_role("heading", name="収集・分類結果").wait_for(timeout=40000)
+                app_frame.get_by_text("公開URLを取得", exact=True).first.click(timeout=12000)
+                app_frame.get_by_role("textbox", name="調査したいページのURL（1行に1件、最大8件）").fill("https://example.com/")
+                app_frame.get_by_role("button", name="情報収集を実行").click()
+                app_frame.get_by_role("heading", name="収集・分類結果").wait_for(timeout=40000)
                 page.screenshot(path=str(OUT / "url-result.png"), full_page=True)
-                body = page.locator("body").inner_text(timeout=10000)
+                body = app_frame.locator("body").inner_text(timeout=10000)
                 if "Example Domain" in body:
                     result["checks"]["external_url_fetch"] = "PASS"
                 else:
@@ -65,7 +85,7 @@ def main():
             result["failure"] = f"{type(exc).__name__}: {exc}"
             try:
                 page.screenshot(path=str(OUT / "failure.png"), full_page=True, timeout=15000)
-                result["notes"].append(page.locator("body").inner_text(timeout=5000)[-900:])
+                result["notes"].append(app_frame.locator("body").inner_text(timeout=5000)[-900:])
             except Exception:
                 pass
         finally:
