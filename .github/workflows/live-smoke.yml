@@ -1,0 +1,40 @@
+name: ResearchFlow public browser smoke
+
+# Runs only when installed/edited or when explicitly dispatched.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-smoke.yml'
+      - 'scripts/live_smoke.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python packages and browser
+        run: |
+          python -m pip install -r requirements.txt pytest playwright
+          python -m playwright install --with-deps chromium
+      - name: Verify processing logic
+        run: python -m pytest -q
+      - name: Verify deployed browser UX
+        env:
+          RESEARCHFLOW_LIVE_URL: https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/
+        run: python scripts/live_smoke.py
+      - name: Preserve verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-browser-check
+          path: smoke-artifacts/
+          if-no-files-found: ignore
