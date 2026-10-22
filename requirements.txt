@@ -1,0 +1,5 @@
+streamlit>=1.41,<2
+beautifulsoup4>=4.12,<5
+scikit-learn>=1.5,<2
+pandas>=2.2,<3
+requests>=2.31,<3

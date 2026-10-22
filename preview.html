@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>ResearchFlow | HTMLから情報を抽出・一覧化</title>
+<meta name="description" content="Webページの公開情報を取得・分類し、確認表とCSVにまとめるリサーチツール。">
+<style>
+/* ResearchFlow v0.4: original typography-first visual system.
+   Inspired by the readable, oversized studio-site hierarchy of artvibes.co.jp.
+   No third-party CSS, logos, fonts or visual assets are copied. */
+:root {
+  --rf-ink:#171a18;
+  --rf-muted:#5f665e;
+  --rf-soft:#ededeb;
+  --rf-paper:#f7f8f5;
+  --rf-white:#ffffff;
+  --rf-lime:#e2f35b;
+  --rf-rule:#ced2cb;
+  --rf-font:'Noto Sans CJK JP','Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,system-ui,sans-serif;
+}
+*,*::before,*::after {box-sizing:border-box}
+html {scroll-behavior:smooth;scroll-padding-top:18px}
+body {margin:0;background:var(--rf-paper);color:var(--rf-ink);font:400 15px/1.85 var(--rf-font);-webkit-font-smoothing:antialiased}
+button,input,select,textarea {font:inherit}
+a {color:inherit;text-underline-offset:5px}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {outline:3px solid #3c58bf;outline-offset:4px}
+[hidden] {display:none!important}
+.rf-shell {width:100%;margin:0 auto;overflow:clip;background:var(--rf-paper)}
+.rf-site-header {height:96px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(23px,5.5vw,104px);gap:20px;border-bottom:1px solid var(--rf-rule)}
+.rf-brand {display:flex;align-items:baseline;text-decoration:none;font-size:clamp(23px,2.2vw,34px);font-weight:900;letter-spacing:-.09em;line-height:1}
+.rf-brand span {font-weight:450}
+.rf-brand i {font-style:normal;font-weight:850;color:#829923}
+.rf-brand small {margin-left:21px;font-size:9px;letter-spacing:.12em;font-weight:750;color:var(--rf-muted);white-space:nowrap}
+.rf-site-nav {display:flex;align-items:center;gap:clamp(16px,3vw,46px);font:750 11px/1.4 var(--rf-font);letter-spacing:.075em}
+.rf-site-nav a {text-decoration:none}
+.rf-site-nav a:not(.rf-nav-cta):hover {text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+.rf-nav-cta {display:flex;gap:25px;align-items:center;justify-content:space-between;color:var(--rf-white)!important;background:var(--rf-ink);padding:15px 18px;min-width:132px;transition:background .2s}
+.rf-nav-cta:hover {background:#414943}
+.rf-nav-cta span {font-size:17px;line-height:1}
+/* First-view reading path: eyebrow, oversized headline, short explanation, one high-contrast destination. */
+.rf-hero {position:relative;max-width:100%;margin:0;background:var(--rf-paper);padding:40px clamp(23px,5.5vw,104px) 30px}
+.rf-hero-meta {display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--rf-rule);padding:0 0 14px;font-size:10px;letter-spacing:.12em;font-weight:800}
+.rf-hero-meta span:last-child {color:var(--rf-muted)}
+.rf-hero-content {padding:64px 0 0}
+.rf-hero-label {display:flex;gap:13px;align-items:center;margin:0 0 22px;font-size:clamp(12px,1.1vw,15px);font-weight:850;letter-spacing:.008em}
+.rf-square {background:var(--rf-lime);width:14px;height:14px;border:2px solid var(--rf-ink);transform:rotate(10deg)}
+.rf-hero h1 {font-family:var(--rf-font);font-weight:900;font-size:clamp(51px,7.65vw,117px);line-height:1.28;letter-spacing:-.108em;margin:0;max-width:1280px;word-break:keep-all}
+.rf-hero-emphasis {box-shadow:inset 0 -.12em 0 var(--rf-lime);padding-right:.05em}
+.rf-hero-lower {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:30px;margin:30px 0 0}
+.rf-hero-copy {display:grid;grid-template-columns:200px minmax(0,650px);column-gap:26px;row-gap:10px;max-width:945px;align-items:start}
+.rf-mini-index {font-size:10px;letter-spacing:.11em;font-weight:800;line-height:2.1}
+.rf-hero-lead {font-size:clamp(13px,1.1vw,16px);line-height:2.15;margin:0;max-width:660px;font-weight:600}
+.rf-hero-micro {grid-column:2;color:var(--rf-muted);font-size:11px;line-height:1.8}
+.rf-action-primary {flex-shrink:0;border:2px solid var(--rf-ink);border-radius:50%;height:158px;width:158px;background:var(--rf-lime);text-decoration:none;display:flex;align-items:center;justify-content:space-around;gap:10px;padding:23px;color:var(--rf-ink);font-weight:900;font-size:12px;letter-spacing:.02em;line-height:1.55;transition:transform .2s,background .2s}
+.rf-action-primary b {font-size:37px;font-weight:400;align-self:flex-start;line-height:1}
+.rf-action-primary:hover {transform:rotate(8deg);background:#efff94}
+.rf-hero-bottom {display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:53px;padding:12px 0;border-top:1px solid var(--rf-rule);font-size:10px;font-weight:750;letter-spacing:.12em}
+/* About: inverted editorial interlude, one story rather than a card grid. */
+.rf-feature {background:var(--rf-ink);color:var(--rf-white);padding:46px clamp(23px,5.5vw,104px) 90px}
+.rf-feature-top {display:flex;justify-content:space-between;gap:15px;font:750 10px/1.8 var(--rf-font);letter-spacing:.1em;padding-bottom:19px;border-bottom:1px solid #4b514d}
+.rf-feature-top span:last-child {color:#a8b1aa}
+.rf-feature-main {max-width:1260px;margin:58px 0 0}
+.rf-feature-statement {font-size:clamp(41px,5.75vw,90px);font-weight:860;line-height:1.46;letter-spacing:-.09em;margin:0 0 37px}
+.rf-feature-statement em {color:var(--rf-lime);font-style:normal;white-space:nowrap}
+.rf-feature-bottom {display:flex;justify-content:space-between;align-items:flex-end;gap:25px;margin-left:19%}
+.rf-feature-desc {font-size:clamp(13px,1.1vw,16px);line-height:2.25;max-width:560px;margin:0;color:#c9d0c9}
+.rf-arrow-link {display:flex;align-items:center;justify-content:center;border:1px solid #7d877e;border-radius:50%;width:81px;height:81px;font-size:35px;line-height:1;text-decoration:none;flex-shrink:0;transition:background .2s,color .2s}
+.rf-arrow-link:hover {background:var(--rf-lime);color:var(--rf-ink)}
+.rf-feature-spec {border-top:1px solid #4b514d;margin:80px 0 0;padding:24px 0 0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:15px;font-size:10px;font-weight:750;letter-spacing:.085em}
+.rf-feature-spec>span:last-child {text-align:right;color:#acb4aa}
+.rf-feature-spec b {display:flex;align-items:center;font:800 clamp(46px,5vw,79px)/1.1 var(--rf-font);letter-spacing:-.095em;white-space:nowrap}
+.rf-feature-spec i {font-style:normal;font-size:.5em;font-weight:300;color:var(--rf-lime);padding:0 19px}
+/* Process: giant section heading followed by disciplined, line-based service rows. */
+.rf-workflow-block {padding:126px clamp(23px,5.5vw,104px) 130px;background:var(--rf-paper)}
+.rf-section-eyebrow {display:inline-block;font:800 11px/1.7 var(--rf-font);letter-spacing:.1em}
+.rf-section-heading {display:grid;grid-template-columns:1fr 340px;align-items:end;gap:40px;margin-bottom:55px}
+.rf-section-heading h2 {font-size:clamp(37px,4.5vw,74px);line-height:1.4;letter-spacing:-.085em;margin:18px 0 0;font-weight:850}
+.rf-section-heading>p {font-size:13px;line-height:2.15;margin:0 0 13px;color:var(--rf-muted)}
+.rf-workflow {border-top:2px solid var(--rf-ink)}
+.rf-workflow-item {display:grid;grid-template-columns:135px minmax(175px,.7fr) minmax(0,1.1fr) 60px;gap:30px;align-items:center;border-bottom:1px solid var(--rf-rule);min-height:154px;padding:20px 0}
+.rf-step-no {font:800 58px/1 var(--rf-font);letter-spacing:-.09em}
+.rf-workflow-item h3 {font-size:clamp(30px,3.1vw,52px);letter-spacing:-.07em;margin:0;font-weight:850;line-height:1.15}
+.rf-workflow-item h3 small {display:block;font:750 10px/1.8 var(--rf-font);letter-spacing:.15em;margin-top:10px;color:var(--rf-muted)}
+.rf-workflow-item p {font-size:13px;line-height:2;margin:0;color:var(--rf-muted);max-width:410px}
+.rf-step-arrow {font-size:37px;font-weight:350;text-align:right;align-self:start;margin-top:21px}
+.rf-inline-link {display:flex;align-items:center;justify-content:space-between;gap:30px;border-bottom:2px solid var(--rf-ink);max-width:340px;margin:48px 0 0 auto;padding:0 0 12px;text-decoration:none;font-size:12px;letter-spacing:.1em;font-weight:850}
+.rf-inline-link b {font-size:27px;font-weight:400}
+/* Destination: a working data demo, not a collection of decorative stat cards. */
+.rf-results-block {padding:75px clamp(23px,5.5vw,104px) 115px;background:#e8ebe5;border-top:1px solid #c9cec6}
+.rf-demo-intro {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(230px,.7fr);gap:60px;align-items:end;padding-bottom:55px;scroll-margin-top:16px}
+.rf-results-title {font-size:clamp(46px,5.35vw,86px);line-height:1.35;letter-spacing:-.095em;font-weight:890;margin:17px 0 0}
+.rf-demo-intro-side {padding-bottom:13px}
+.rf-demo-intro-side p {font-size:14px;line-height:2.1;max-width:500px;margin:0 0 20px}
+.rf-demo-intro-side span {font-size:10px;letter-spacing:.1em;color:var(--rf-muted);font-weight:750}
+.rf-preview-notice {border-left:4px solid var(--rf-ink);padding:7px 0 7px 16px;color:var(--rf-muted);font-size:12px;margin:0 0 35px;line-height:1.85}
+.rf-preview-notice strong {color:var(--rf-ink)}
+.rf-stat-row {display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--rf-ink);border-bottom:1px solid var(--rf-ink);margin:0 0 38px}
+.rf-stat {padding:24px 20px 27px;display:flex;gap:7px;align-items:baseline;min-width:0}
+.rf-stat:first-child {padding-left:0}
+.rf-stat:not(:last-child) {border-right:1px solid #c3c9c2}
+.rf-stat-label {display:block;flex:1;align-self:start;margin-top:5px;font-size:11px;font-weight:750}
+.rf-stat-value {font:850 clamp(38px,5.5vw,79px)/1 var(--rf-font);letter-spacing:-.08em}
+.rf-stat-unit {font-size:12px}
+.rf-toolbar {display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.rf-toolbar-left {display:flex;gap:10px;flex:1;align-items:center;flex-wrap:wrap}
+.rf-filter {background:white;border:1px solid #90968f;border-radius:0;height:55px;font-size:13px;padding:12px 16px;color:var(--rf-ink);min-width:160px}
+.rf-filter[type=search] {width:clamp(220px,30vw,430px)}
+.rf-download {background:var(--rf-ink);color:white;display:flex;align-items:center;justify-content:center;padding:0 23px;min-height:55px;font-size:12px;font-weight:800;letter-spacing:.04em;text-decoration:none;border:1px solid var(--rf-ink);transition:background .2s}
+.rf-download:hover {background:#4e574f}
+.rf-scroll-hint {display:none;font-size:11px;color:var(--rf-muted)}
+.rf-table-wrap {background:var(--rf-white);overflow-x:auto;border:1px solid #9ea59c}
+.rf-table {border-collapse:collapse;min-width:870px;width:100%;text-align:left}
+.rf-table th {font-size:11px;font-weight:800;text-align:left;padding:20px 15px;background:var(--rf-ink);color:white;white-space:nowrap}
+.rf-table td {font-size:12px;color:#454b44;line-height:1.9;vertical-align:top;padding:20px 15px;border-bottom:1px solid #dbe0da}
+.rf-table tr:last-child td {border-bottom:0}
+.rf-table tbody tr:hover {background:#f3f6ef}
+.rf-row-title {font-weight:850;color:var(--rf-ink);margin-bottom:8px;font-size:13px}
+.rf-row-url {font-size:10px;word-break:break-all;color:#6c776b}
+.rf-category {display:inline-block;background:var(--rf-lime);font-size:10px;font-weight:800;padding:4px 8px;white-space:nowrap;color:var(--rf-ink)}
+.rf-empty {padding:40px;text-align:center;color:var(--rf-muted)}
+.rf-footnote {font-size:11px;color:var(--rf-muted);line-height:2;margin:16px 0 0}
+/* Technical notes use a plain white information architecture, not decorative cards. */
+.rf-about-block {display:grid;grid-template-columns:minmax(240px,.95fr) minmax(0,1.2fr);gap:8%;padding:130px clamp(23px,5.5vw,104px);background:var(--rf-white)}
+.rf-about-block .rf-section-title {font-size:clamp(32px,3.5vw,55px);letter-spacing:-.07em;line-height:1.55;margin:19px 0 0}
+.rf-about-grid {display:grid;grid-template-columns:1fr 1fr;gap:42px;border-top:2px solid var(--rf-ink);padding-top:30px}
+.rf-about-grid h3 {font-size:16px;font-weight:850;margin:0 0 23px}
+.rf-about-grid p {font-size:13px;line-height:2;color:var(--rf-muted);margin:0 0 21px}
+/* Bold wordmark footer, agency-style ending. */
+.rf-site-footer {background:var(--rf-ink);padding:34px clamp(23px,5.5vw,104px) 38px;color:white}
+.rf-footer-top {display:flex;justify-content:space-between;gap:20px;font:750 10px/1.7 var(--rf-font);letter-spacing:.12em;border-bottom:1px solid #555d57;padding-bottom:27px}
+.rf-footer-top a {text-decoration:none}
+.rf-footer-heading {font:900 clamp(90px,15.2vw,238px)/.87 var(--rf-font);letter-spacing:-.105em;margin:80px 0 95px;overflow:hidden}
+.rf-footer-heading span {color:var(--rf-lime)}
+.rf-footer-bottom {display:flex;justify-content:space-between;gap:35px;border-top:1px solid #555d57;padding-top:23px;font-size:11px;color:#bbc3ba}
+/* Streamlit shell: keep genuine Python controls, match editorial typography. */
+.stApp,[data-testid='stAppViewContainer'] {background:var(--rf-paper)!important;color:var(--rf-ink);font-family:var(--rf-font)}
+[data-testid='stMainBlockContainer'],.block-container {max-width:100%!important;padding:0 clamp(23px,5.5vw,104px) 40px!important}
+[data-testid='stHeader'] {background:transparent!important}
+.stApp .rf-site-header,.stApp .rf-hero,.stApp .rf-feature,.stApp .rf-workflow-block,.stApp .rf-demo-intro,.stApp .rf-site-footer {margin-left:calc(-1 * clamp(23px,5.5vw,104px));margin-right:calc(-1 * clamp(23px,5.5vw,104px))}
+.stApp [data-testid='stVerticalBlock']>.stElementContainer:has(.rf-site-header),
+.stApp [data-testid='stVerticalBlock']>.stElementContainer:has(.rf-hero) {margin:0!important}
+.stApp .rf-hero {padding-top:40px}
+.stApp .rf-workflow-block {padding-bottom:64px}
+.stApp .rf-demo-intro {background:#e8ebe5;padding:60px clamp(23px,5.5vw,104px) 48px;border-top:1px solid #c9cec6}
+.stApp .rf-results-title {font-size:clamp(43px,5vw,80px)}
+.stApp .rf-stream-heading {font-size:11px;font-weight:800;letter-spacing:.07em;margin:50px 0 12px}
+.stApp .rf-section-title {font-size:clamp(30px,3.5vw,52px);margin:12px 0 18px;letter-spacing:-.07em}
+.stApp .rf-section-lead {font-size:13px;line-height:2.1;max-width:720px;margin:0 0 28px}
+.stApp .rf-meta-line {font-size:11px;letter-spacing:.05em;margin-top:30px;padding:12px 0;border-top:1px solid var(--rf-rule)}
+.stApp .rf-subtle-note {margin-top:18px;padding:14px;border-left:3px solid var(--rf-ink);font-size:12px;line-height:2;background:#eceee9}
+.stApp [data-testid='stTabs'] {margin:58px 0 0}
+.stApp [data-testid='stTabs'] [data-baseweb='tab-list'] {gap:30px;border-bottom:1px solid var(--rf-rule)}
+.stApp [data-testid='stTabs'] button[role='tab'] {background:transparent!important;border-radius:0!important;font-size:13px;font-weight:750;padding:15px 4px;color:var(--rf-muted)}
+.stApp [data-testid='stTabs'] button[role='tab'][aria-selected='true'] {color:var(--rf-ink)!important;border-bottom:3px solid var(--rf-ink)}
+.stApp [data-testid='stTabs'] [data-baseweb='tab-highlight'] {background:var(--rf-ink)}
+.stApp [data-testid='stTabs'] [data-baseweb='tab-border'] {background:var(--rf-rule)}
+.stApp .stButton button[kind='primary'],.stApp .stDownloadButton button[kind='primary'] {background:var(--rf-ink)!important;border:1px solid var(--rf-ink)!important;color:white!important;border-radius:0!important;box-shadow:none!important;min-height:54px;font-weight:800}
+.stApp .stButton button[kind='primary']:hover,.stApp .stDownloadButton button[kind='primary']:hover {background:#3e493f!important}
+.stApp [data-baseweb='input']>div,.stApp [data-baseweb='select']>div,.stApp [data-baseweb='tag'],.stApp [data-testid='stFileUploader']>section {border-radius:0!important}
+.stApp [data-testid='stDataFrame'] {border:1px solid #929d92;border-radius:0!important;overflow:hidden}
+.stApp [data-testid='stMetric'] {background:#e8ebe5;border-top:2px solid var(--rf-ink);padding:18px}
+.stApp [data-testid='stMetricLabel'] {font-size:11px;color:var(--rf-muted)}
+.stApp [data-testid='stMetricValue'] {font-size:clamp(31px,3vw,49px);font-weight:800;letter-spacing:-.07em;color:var(--rf-ink)}
+.stApp [data-testid='stAlert'] {border-radius:0!important}
+.stApp p,.stApp li {line-height:1.9}
+/* A no-JS responsive layout. */
+@media(max-width:980px) {
+  .rf-hero h1 {font-size:clamp(51px,7.8vw,82px)}
+  .rf-hero-copy {grid-template-columns:155px minmax(0,1fr)}
+  .rf-section-heading {grid-template-columns:1fr 265px}
+  .rf-workflow-item {grid-template-columns:85px minmax(120px,.65fr) minmax(0,1fr) 35px;gap:16px}
+  .rf-step-no {font-size:42px}
+  .rf-about-block {grid-template-columns:1fr;gap:45px}
+}
+@media(max-width:700px) {
+  .rf-site-header {height:75px;padding:0 21px}
+  .rf-brand {font-size:25px}
+  .rf-brand small {font-size:8px;margin-left:10px}
+  .rf-site-nav {gap:14px;font-size:10px}
+  .rf-site-nav a:not(.rf-nav-cta) {display:none}
+  .rf-nav-cta {min-width:88px;padding:12px 11px;gap:14px}
+  .rf-hero {padding:23px 21px 24px}
+  .rf-hero-meta {font-size:8px;padding-bottom:13px}
+  .rf-hero-meta span:last-child {display:none}
+  .rf-hero-content {padding-top:54px}
+  .rf-hero-label {font-size:12px;margin-bottom:23px}
+  .rf-hero h1 {font-size:clamp(38px,10vw,66px);line-height:1.38;letter-spacing:-.1em;word-break:normal}
+  .rf-hero-emphasis {box-shadow:inset 0 -.12em 0 var(--rf-lime)}
+  .rf-hero-lower {display:flex;flex-direction:column;align-items:flex-start;gap:28px;margin-top:39px}
+  .rf-hero-copy {display:block}
+  .rf-mini-index {font-size:9px;display:block;margin-bottom:17px}
+  .rf-hero-lead {font-size:13px;line-height:2.1}
+  .rf-hero-micro {display:block;font-size:10px;margin-top:13px}
+  .rf-action-primary {height:115px;width:115px;padding:14px;font-size:10px;margin-left:auto;margin-right:1px}
+  .rf-action-primary b {font-size:25px}
+  .rf-hero-bottom {margin-top:31px;font-size:9px}
+  .rf-feature {padding:29px 21px 55px}
+  .rf-feature-top {font-size:9px}
+  .rf-feature-top span:last-child {display:none}
+  .rf-feature-main {margin-top:43px}
+  .rf-feature-statement {font-size:clamp(32px,8.3vw,53px);line-height:1.53;letter-spacing:-.09em;margin-bottom:29px}
+  .rf-feature-bottom {margin:0;align-items:flex-start}
+  .rf-feature-desc {font-size:12px;line-height:2.2}
+  .rf-arrow-link {width:48px;height:48px;font-size:23px}
+  .rf-feature-spec {margin-top:52px;grid-template-columns:1fr;gap:10px}
+  .rf-feature-spec b {font-size:52px}
+  .rf-feature-spec i {padding:0 16px}
+  .rf-feature-spec>span:last-child {text-align:left;font-size:9px}
+  .rf-workflow-block {padding:82px 21px 91px}
+  .rf-section-heading {display:block;margin-bottom:35px}
+  .rf-section-heading h2 {font-size:clamp(34px,7.8vw,48px);margin-top:14px}
+  .rf-section-heading>p {font-size:12px;margin-top:18px}
+  .rf-workflow-item {grid-template-columns:57px minmax(0,1fr) 20px;min-height:0;gap:12px;padding:24px 0}
+  .rf-step-no {font-size:37px;align-self:start;padding-top:5px}
+  .rf-workflow-item h3 {font-size:29px;align-self:start}
+  .rf-workflow-item h3 small {font-size:9px;margin-top:3px}
+  .rf-workflow-item p {grid-column:2;grid-row:2;font-size:11px;max-width:none}
+  .rf-step-arrow {grid-column:3;grid-row:1;align-self:start;font-size:23px;margin-top:9px}
+  .rf-inline-link {max-width:none;margin-top:35px}
+  .rf-results-block {padding:77px 21px 85px}
+  .rf-demo-intro {grid-template-columns:1fr;gap:22px;padding-bottom:35px}
+  .rf-results-title {font-size:clamp(42px,10vw,66px)}
+  .rf-demo-intro-side {padding:0}
+  .rf-demo-intro-side p {font-size:12px;line-height:2.05;margin-bottom:12px}
+  .rf-preview-notice {font-size:11px;margin-bottom:29px}
+  .rf-stat-row {grid-template-columns:repeat(3,1fr)}
+  .rf-stat {padding:13px 10px;display:block}
+  .rf-stat:first-child {padding-left:0}
+  .rf-stat-label {font-size:9px;min-height:18px;margin-bottom:10px}
+  .rf-stat-value {font-size:34px}
+  .rf-stat-unit {font-size:10px}
+  .rf-toolbar {align-items:stretch;gap:14px}
+  .rf-toolbar-left {width:100%;flex-wrap:wrap;gap:8px}
+  .rf-filter[type=search] {width:100%;flex-basis:100%}
+  .rf-filter {height:51px;min-width:0;flex:1}
+  .rf-download {width:100%}
+  .rf-scroll-hint {display:block}
+  .rf-about-block {padding:78px 21px 93px}
+  .rf-about-grid {grid-template-columns:1fr;gap:30px;padding-top:29px}
+  .rf-about-block .rf-section-title {font-size:31px}
+  .rf-site-footer {padding:27px 21px 35px}
+  .rf-footer-top {font-size:9px}
+  .rf-footer-heading {font-size:clamp(77px,16vw,123px);margin:71px 0 92px}
+  .rf-footer-bottom {flex-direction:column;gap:11px;font-size:10px}
+  .stApp .rf-demo-intro {padding:54px 21px 35px}
+  .stApp .rf-workflow-block {padding-bottom:54px}
+  .stApp [data-testid='stMainBlockContainer'],.stApp .block-container {padding-left:21px!important;padding-right:21px!important}
+  .stApp .rf-site-header,.stApp .rf-hero,.stApp .rf-feature,.stApp .rf-workflow-block,.stApp .rf-demo-intro,.stApp .rf-site-footer {margin-left:-21px;margin-right:-21px}
+  .stApp [data-testid='stTabs'] {margin:40px 0 0}
+  .stApp .rf-meta-line {padding:12px 0}
+}
+@media(prefers-reduced-motion:reduce) {html {scroll-behavior:auto}.rf-action-primary,.rf-arrow-link,.rf-download {transition:none}}
+/* v0.6: a functional research workbench inserted into the editorial layout. */
+.rf-import-box {background:#eef0e8;border-top:3px solid var(--rf-ink);border-bottom:1px solid var(--rf-rule);margin:28px 0 46px;padding:34px clamp(18px,4vw,42px);display:grid;grid-template-columns:minmax(0,1fr) 236px;gap:34px;align-items:center}
+.rf-import-copy h3 {margin:10px 0 12px;font-size:clamp(22px,2.2vw,32px);font-weight:850;letter-spacing:-.06em;line-height:1.4}
+.rf-import-copy p {max-width:650px;margin:0;font-size:13px;line-height:2.0}
+.rf-import-copy .rf-import-small {font-size:11px;margin-top:12px;color:var(--rf-muted)}
+.rf-import-controls {display:flex;flex-direction:column;gap:12px}
+.rf-import-button {display:flex;align-items:center;justify-content:space-between;background:var(--rf-ink);padding:17px 16px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;line-height:1.5}
+.rf-import-button span {font-size:20px;font-weight:400;line-height:1}
+.rf-import-button:hover {background:#424b40}
+.rf-reset-button {background:transparent;border:1px solid #a8b0a6;padding:14px 12px;text-align:center;cursor:pointer;font-size:11px;font-weight:700}
+.rf-reset-button:hover {background:#fff}
+.rf-file-status {font-size:10px;line-height:1.7;color:var(--rf-muted)}
+.rf-visually-hidden {position:absolute!important;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.rf-category-edit,.rf-status-edit {appearance:auto;color:var(--rf-ink);background:#fff;border:1px solid #aeb8ab;border-radius:0;font-size:12px;max-width:100%;min-width:75px;padding:8px 6px}
+@media(max-width:700px){.rf-import-box{grid-template-columns:1fr;gap:24px;margin:18px 0 28px;padding:25px 17px}.rf-import-copy h3{font-size:24px}.rf-import-controls{max-width:none}.rf-category-edit,.rf-status-edit{min-width:83px}}
+
+</style>
+</head>
+<body>
+<main class="rf-shell">
+
+<header class="rf-site-header" aria-label="Site navigation">
+  <a class="rf-brand" href="#top" aria-label="ResearchFlow - to top">research<span>flow</span><i>.</i><small>WORK / 001</small></a>
+  <nav class="rf-site-nav" aria-label="Sections">
+    <a href="#case">ABOUT</a>
+    <a href="#workflow">PROCESS</a>
+    <a class="rf-nav-cta" href="#demo">DEMO <span aria-hidden="true">&#8599;</span></a>
+  </nav>
+</header>
+
+
+<section class="rf-hero" id="top" aria-labelledby="rf-hero-title">
+  <div class="rf-hero-meta"><span>WEB MEDIA / RESEARCH TOOL</span><span>PERSONAL PROJECT / 2026</span></div>
+  <div class="rf-hero-content">
+    <p class="rf-hero-label"><span class="rf-square" aria-hidden="true"></span>RESEARCHFLOW / CASE STUDY 01</p>
+    <h1 id="rf-hero-title">ページ情報を<br/><span class="rf-hero-emphasis">一覧表にまとめる</span></h1>
+    <div class="rf-hero-lower">
+      <div class="rf-hero-copy">
+        <span class="rf-mini-index">WHAT IS RESEARCHFLOW?</span>
+        <p class="rf-hero-lead">公開ページのURLや保存したHTMLから、タイトルや所在地などを抽出します。<br class="rf-only-desktop"/>自動分類した結果を確認・修正し、CSVで保存できます。</p>
+        <span class="rf-hero-micro">実際の公開URLに対応 ／ 標準モードはAPIキー不要</span>
+      </div>
+      <a href="#demo" class="rf-action-primary" aria-label="See the research demo"><span>結果を<br>見る</span><b aria-hidden="true">&#8599;</b></a>
+    </div>
+  </div>
+  <div class="rf-hero-bottom"><span>01 / 04</span><span>SCROLL &nbsp; &#8595;</span></div>
+</section>
+
+
+<section class="rf-feature" id="case" aria-label="Project overview">
+  <div class="rf-feature-top"><span>01 &mdash; OVERVIEW</span><span>FROM HTML TO CSV</span></div>
+  <div class="rf-feature-main">
+    <p class="rf-feature-statement">複数のページを<br/><em>一度に一覧化</em></p>
+    <div class="rf-feature-bottom"><p class="rf-feature-desc">ページ情報を取得・分類し、一覧表で確認できます。必要な箇所を修正して、そのままCSVに保存できます。</p><a href="#workflow" class="rf-arrow-link" aria-label="How the process works">&#8599;</a></div>
+  </div>
+  <div class="rf-feature-spec"><span>OUTPUT</span><b>URL <i>&#8594;</i> CSV</b><span>PUBLIC PAGES &nbsp; / &nbsp; EDITABLE RESEARCH SHEET</span></div>
+</section>
+
+
+<section class="rf-workflow-block" id="workflow" aria-label="Processing steps">
+  <div class="rf-section-heading"><div><span class="rf-section-eyebrow">02 &mdash; PROCESS</span><h2>抽出からCSV出力まで</h2></div><p>公開URLやHTMLファイルを、抽出・分類・確認の順に処理します。</p></div>
+  <div class="rf-workflow">
+    <article class="rf-workflow-item">
+       <span class="rf-step-no">01</span>
+       <h3>抽出<small>EXTRACT</small></h3>
+       <p>公開URLまたはHTMLファイルから、タイトル・所在地・開催日などを取得します。</p>
+       <span class="rf-step-arrow" aria-hidden="true">&#8599;</span>
+    </article>
+    <article class="rf-workflow-item">
+       <span class="rf-step-no">02</span>
+       <h3>分類<small>CLASSIFY</small></h3>
+       <p>無料のローカル分類モデルでジャンルを推定します。正確性は確認が必要です。</p>
+       <span class="rf-step-arrow" aria-hidden="true">&#8599;</span>
+    </article>
+    <article class="rf-workflow-item">
+       <span class="rf-step-no">03</span>
+       <h3>出力<small>EXPORT</small></h3>
+       <p>分類や概要を編集し、確認したデータをCSVで保存できます。</p>
+       <span class="rf-step-arrow" aria-hidden="true">&#8599;</span>
+    </article>
+  </div>
+  <a class="rf-inline-link" href="#demo"><span>実際に試す</span><b aria-hidden="true">&#8599;</b></a>
+</section>
+
+<section class="rf-results-block" aria-label="Preview results">
+
+<div class="rf-demo-intro" id="demo">
+  <div><span class="rf-section-eyebrow">03 &mdash; RESULT</span><h2 class="rf-results-title">情報収集を試す</h2></div>
+  <div class="rf-demo-intro-side"><p>公開URLを最大8件まとめて取得できます。HTMLファイルの取り込みや、確認・修正した結果のCSV出力にも対応しています。</p><span>URL INPUT / HTML UPLOAD / CSV EXPORT</span></div>
+</div>
+
+  <div class="rf-import-box" aria-label="HTML import demonstration">
+    <div class="rf-import-copy">
+      <span class="rf-mini-index">TRY WITH YOUR OWN DATA</span>
+      <h3>手元のHTMLを解析する</h3>
+      <p>HTMLファイルを選択すると、このブラウザ内でタイトル・概要・所在地などを抽出し、一覧表に反映します。サーバーには送信されません。</p>
+      <p class="rf-import-small">ブラウザ版は簡易キーワード分類です。公開URLの直接取得と機械学習分類は、Streamlitアプリ版で利用できます。</p>
+    </div>
+    <div class="rf-import-controls">
+      <label class="rf-import-button" for="html-import">HTMLを選択する <span aria-hidden="true">&#8599;</span></label>
+      <input id="html-import" class="rf-visually-hidden" type="file" accept=".html,.htm,text/html" multiple aria-label="HTMLファイルを選択（最大8件）">
+      <button type="button" class="rf-reset-button" id="reset-demo">サンプルに戻す</button>
+      <div id="file-status" class="rf-file-status" role="status" aria-live="polite">初期表示：架空のサンプル6件</div>
+    </div>
+  </div>
+  <div class="rf-stat-row" aria-label="処理統計">
+    <div class="rf-stat"><span class="rf-stat-label">HTMLの件数</span><strong class="rf-stat-value" id="input-count">6</strong><span class="rf-stat-unit">件</span></div>
+    <div class="rf-stat"><span class="rf-stat-label">分類したカテゴリ</span><strong class="rf-stat-value" id="category-count">3</strong><span class="rf-stat-unit">種</span></div>
+    <div class="rf-stat"><span class="rf-stat-label">エラー・重複</span><strong class="rf-stat-value" id="error-count">0</strong><span class="rf-stat-unit">件</span></div>
+  </div>
+  <div class="rf-toolbar">
+    <div class="rf-toolbar-left">
+      <input class="rf-filter" id="search" type="search" placeholder="タイトル・概要から検索" aria-label="タイトル・概要から検索">
+      <select class="rf-filter" id="category" aria-label="カテゴリで絞り込む">
+        <option value="all">すべてのカテゴリ</option>
+        <option value="グルメ">グルメ</option>
+        <option value="観光">観光</option>
+        <option value="イベント">イベント</option>
+        <option value="その他">その他</option>
+      </select>
+    </div>
+    <a class="rf-download" download="researchflow_results.csv" href="data:text/csv;base64,77u/44Oa44O844K444K/44Kk44OI44OrLOOCq+ODhuOCtOODqizmpoLopoEs5omA5Zyo5ZywLOmWi+WCrOaXpSzlj4LnhadVUkws5oq95Ye65pa55rOVLOWIhumhnuaWueazlSznorroqo3nirbms4Es56K66KqN44Oh44OiLOWFpeWKm+WFgw0K5pyI44GC44GL44KK54S86I+T5a2Q5bqX772c5a2j56+A44Gu44K/44Or44OI44Go44Kv44OD44Kt44O8LOOCsOODq+ODoSzmhJvnn6XnnIzlkI3lj6TlsYvluILjga7nhLzjgY3oj5PlrZDlsILploDlupfjgILlraPnr4Djga7jgr/jg6vjg4jjgoTjgq/jg4Pjgq3jg7zjgpLlupfpoK3osqnlo7LjgILllrbmpa3mmYLplpPjga8xMOaZguOBi+OCiTE45pmC44CB54Gr5puc5a6a5LyR44CCLOaEm+efpeecjCDlkI3lj6TlsYvluIIg5Lit5Yy6MS0yLTMs5pyq6KiY6LyJLGh0dHBzOi8vZGVtby5leGFtcGxlL2Jha2VyeSxCZWF1dGlmdWxTb3Vw77yISFRNTO+8iSzjg63jg7zjgqvjg6vou73ph49NTO+8iOeEoeaWme+8iSzopoHnorroqo3vvIjjg4fjg6LvvIksLOOCteODs+ODl+ODqw0K6aKo6KaL6I2J44Kr44OV44Kn772c44Op44Oz44OB44Go6Ieq5a6254SZ54WO44Kz44O844OS44O8LOOCsOODq+ODoSzlspDpmJznnIzlpJrmsrvopovluILjga7lj6TmsJHlrrbjgqvjg5XjgqfjgILoh6rlrrbnhJnnhY7jgrPjg7zjg5Ljg7zjgajlnLDlhYPph47oj5zjga7jg6njg7Pjg4HjgpLmj5DkvpvjgZfjgabjgYTjgb7jgZnjgIIs5bKQ6Zic55yMIOWkmuayu+imi+W4giDnmb3lt53nlLo0LTUtNizmnKroqJjovIksaHR0cHM6Ly9kZW1vLmV4YW1wbGUvY2FmZSxCZWF1dGlmdWxTb3Vw77yISFRNTO+8iSzjg63jg7zjgqvjg6vou73ph49NTO+8iOeEoeaWme+8iSzopoHnorroqo3vvIjjg4fjg6LvvIksLOOCteODs+ODl+ODqw0K5Y2X5riv44G/44Gv44KJ44GX44OG44Op44K5772c5rW344Gu6aKo5pmv44KS5qW944GX44KA5bGV5pyb5pa96KitLOims+WFiSzmhJvnn6XnnIzokrLpg6HluILjga7muK/jgpLopovmuKHjgZvjgovlsZXmnJvjg4bjg6njgrnjgILmlaPnrZbot6/jgajmkq7lvbHjgrnjg53jg4Pjg4jjgpLmpb3jgZfjgoHjgovoprPlhYnjgrnjg53jg4Pjg4jjgafjgZnjgIIs5oSb55+l55yMIOiSsumDoeW4giDmtbflsrjnlLo3LTgtOSzmnKroqJjovIksaHR0cHM6Ly9kZW1vLmV4YW1wbGUvb2JzZXJ2YXRvcnksQmVhdXRpZnVsU291cO+8iEhUTUzvvIks44Ot44O844Kr44Or6Lu96YePTUzvvIjnhKHmlpnvvIks6KaB56K66KqN77yI44OH44Oi77yJLCzjgrXjg7Pjg5fjg6sNCuWxsemHjOattOWPsuizh+aWmemkqO+9nOaYlOOBruaaruOCieOBl+OBqOWcsOWfn+aWh+WMluOBruWxleekuizoprPlhYks6ZW36YeO55yM6aOv55Sw5biC44Gu5q205Y+y6LOH5paZ6aSo44CC6YO35Zyf6LOH5paZ44KE5Lyd57Wx5bel6Iq444KS57S55LuL44GZ44KL5bi46Kit5bGV56S644GM44GC44KK44G+44GZ44CCLOmVt+mHjuecjCDpo6/nlLDluIIg5pys55S6Mi0xLTEs5pyq6KiY6LyJLGh0dHBzOi8vZGVtby5leGFtcGxlL211c2V1bSxCZWF1dGlmdWxTb3Vw77yISFRNTO+8iSzjg63jg7zjgqvjg6vou73ph49NTO+8iOeEoeaWme+8iSzopoHnorroqo3vvIjjg4fjg6LvvIksLOOCteODs+ODl+ODqw0K6aeF5YmN44Kv44Op44OV44OI44Oe44Or44K344KnMjAyNu+9nOmAseacq+OCpOODmeODs+ODiCzjgqTjg5njg7Pjg4gsMjAyNuW5tDEx5pyIN+aXpeOBq+aEm+efpeecjOWyoeW0juW4guOBp+mWi+WCrOOBmeOCi+mAseacq+ODnuODq+OCt+OCp+OAguWcsOWfn+OBruS9nOWutuOBq+OCiOOCi+mbkeiyqOiyqeWjsuOChOS9k+mok+ODr+ODvOOCr+OCt+ODp+ODg+ODl+OCkuWun+aWveOAgizmhJvnn6XnnIwg5bKh5bSO5biCIOmnheWJjemAmuOCijMtMi0xLDIwMjYtMTEtMDcsaHR0cHM6Ly9kZW1vLmV4YW1wbGUvbWFya2V0LEJlYXV0aWZ1bFNvdXDvvIhIVE1M77yJLOODreODvOOCq+ODq+i7vemHj01M77yI54Sh5paZ77yJLOimgeeiuuiqje+8iOODh+ODou+8iSws44K144Oz44OX44OrDQrmsLTovrrjga7jgYLjgYvjgornpa3jgorvvZznp4vjga7jg6njgqTjg4jjgqLjg4Pjg5fplovlgqws44Kk44OZ44Oz44OILOmdmeWyoeecjOa1nOadvuW4guOBpzIwMjblubQxMuaciDXml6XjgYvjgonlp4vjgb7jgovjg6njgqTjg4jjgqLjg4Pjg5fjgqTjg5njg7Pjg4jjgILjgqTjg6vjg5/jg43jg7zjgrfjg6fjg7Pjga7plovlgqzmnJ/plpPjgajkvJrloLTjgpLmoYjlhoXjgIIs6Z2Z5bKh55yMIOa1nOadvuW4giDkuK3lpK7ljLrlhazlnJLpgJo1LTYsMjAyNi0xMi0wNSxodHRwczovL2RlbW8uZXhhbXBsZS9saWdodHVwLEJlYXV0aWZ1bFNvdXDvvIhIVE1M77yJLOODreODvOOCq+ODq+i7vemHj01M77yI54Sh5paZ77yJLOimgeeiuuiqje+8iOODh+ODou+8iSws44K144Oz44OX44OrDQo=">CSVを保存する ↗</a>
+  </div>
+  <p class="rf-scroll-hint">表は横方向にスクロールできます。</p>
+  <div class="rf-table-wrap">
+    <table class="rf-table">
+      <thead><tr><th style="width:25%">施設・ページ名</th><th style="width:14%">分類（編集可）</th><th style="width:27%">抽出した概要</th><th style="width:16%">所在地</th><th>開催日</th><th>確認状況</th></tr></thead>
+      <tbody id="items"><tr data-category="グルメ" data-source-url="https://demo.example/bakery"><td><div class="rf-row-title">月あかり焼菓子店｜季節のタルトとクッキー</div><div class="rf-row-url">https://demo.example/bakery</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="グルメ" selected>グルメ</option><option value="観光">観光</option><option value="イベント">イベント</option><option value="その他">その他</option></select></td><td>愛知県名古屋市の焼き菓子専門店。季節のタルトやクッキーを店頭販売。営業時間は10時から18時、火曜定休。</td><td>愛知県 名古屋市 中区1-2-3</td><td>—</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="グルメ" data-source-url="https://demo.example/cafe"><td><div class="rf-row-title">風見草カフェ｜ランチと自家焙煎コーヒー</div><div class="rf-row-url">https://demo.example/cafe</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="グルメ" selected>グルメ</option><option value="観光">観光</option><option value="イベント">イベント</option><option value="その他">その他</option></select></td><td>岐阜県多治見市の古民家カフェ。自家焙煎コーヒーと地元野菜のランチを提供しています。</td><td>岐阜県 多治見市 白川町4-5-6</td><td>—</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="観光" data-source-url="https://demo.example/observatory"><td><div class="rf-row-title">南港みはらしテラス｜海の風景を楽しむ展望施設</div><div class="rf-row-url">https://demo.example/observatory</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="グルメ">グルメ</option><option value="観光" selected>観光</option><option value="イベント">イベント</option><option value="その他">その他</option></select></td><td>愛知県蒲郡市の港を見渡せる展望テラス。散策路と撮影スポットを楽しめる観光スポットです。</td><td>愛知県 蒲郡市 海岸町7-8-9</td><td>—</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="観光" data-source-url="https://demo.example/museum"><td><div class="rf-row-title">山里歴史資料館｜昔の暮らしと地域文化の展示</div><div class="rf-row-url">https://demo.example/museum</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="グルメ">グルメ</option><option value="観光" selected>観光</option><option value="イベント">イベント</option><option value="その他">その他</option></select></td><td>長野県飯田市の歴史資料館。郷土資料や伝統工芸を紹介する常設展示があります。</td><td>長野県 飯田市 本町2-1-1</td><td>—</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="イベント" data-source-url="https://demo.example/market"><td><div class="rf-row-title">駅前クラフトマルシェ2026｜週末イベント</div><div class="rf-row-url">https://demo.example/market</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="グルメ">グルメ</option><option value="観光">観光</option><option value="イベント" selected>イベント</option><option value="その他">その他</option></select></td><td>2026年11月7日に愛知県岡崎市で開催する週末マルシェ。地域の作家による雑貨販売や体験ワークショップを実施。</td><td>愛知県 岡崎市 駅前通り3-2-1</td><td>2026-11-07</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="イベント" data-source-url="https://demo.example/lightup"><td><div class="rf-row-title">水辺のあかり祭り｜秋のライトアップ開催</div><div class="rf-row-url">https://demo.example/lightup</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="グルメ">グルメ</option><option value="観光">観光</option><option value="イベント" selected>イベント</option><option value="その他">その他</option></select></td><td>静岡県浜松市で2026年12月5日から始まるライトアップイベント。イルミネーションの開催期間と会場を案内。</td><td>静岡県 浜松市 中央区公園通5-6</td><td>2026-12-05</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr></tbody>
+    </table>
+    <div class="rf-empty" id="empty" hidden>該当する項目はありません。</div>
+  </div>
+  <div class="rf-footnote" id="shown-count" role="status" aria-live="polite">6 件を表示中</div>
+  <p class="rf-footnote">初期データは架空です。ブラウザで読み込んだHTMLの情報は外部に送信されません。分類・抽出結果は必ず原文と照合してください。</p>
+</section>
+<section id="about" class="rf-about-block" aria-labelledby="about-title">
+  <div class="rf-section-rail"><span>04</span><span>DETAILS</span></div>
+  <div>
+    <div class="rf-section-topline"><span>IMPLEMENTATION &amp; LIMITS</span><span>UNDER THE HOOD</span></div>
+    <h2 class="rf-section-title" id="about-title">実装内容と制約</h2>
+    <div class="rf-about-grid">
+      <div>
+        <h3>実装した範囲</h3>
+        <p>公開URLの取得、HTMLからの情報抽出、無料のローカル機械学習による分類、確認内容の編集、CSV出力まで実装しました。</p>
+        <p>Python / BeautifulSoup / scikit-learn / Streamlit / pandas</p>
+      </div>
+      <div>
+        <h3>対象外・制約</h3>
+        <p>定期巡回やGoogle Sheetsへの直接書き込みには対応していません。JavaScriptで描画されるページや取得制限のあるサイトは解析できない場合があります。ローカルローカル分類モデルは少量の例文で学習しており、実務データでの精度は未検証です。</p>
+        <p>抽出した情報は、元のHTMLと照合する必要があります。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="rf-site-footer" aria-label="End of portfolio">
+  <div class="rf-footer-top"><span>END OF CASE</span><a href="#top">BACK TO TOP &nbsp; &#8593;</a></div>
+  <p class="rf-footer-heading">research<br><span>flow.</span></p>
+  <div class="rf-footer-bottom"><span>WEB MEDIA &times; AUTOMATION / 2026</span><span>初期表示のサンプルデータは架空です。</span></div>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const search = document.querySelector('#search');
+  const category = document.querySelector('#category');
+  const tbody = document.querySelector('#items');
+  const empty = document.querySelector('#empty');
+  const shownCount = document.querySelector('#shown-count');
+  const inputCount = document.querySelector('#input-count');
+  const categoryCount = document.querySelector('#category-count');
+  const errorCount = document.querySelector('#error-count');
+  const fileInput = document.querySelector('#html-import');
+  const fileStatus = document.querySelector('#file-status');
+  const csvLink = document.querySelector('.rf-download');
+  const original = tbody.innerHTML;
+  const initialCsvHref = csvLink.href;
+  let blobUrl = null;
+  let errors = 0;
+
+  function currentRows() { return Array.from(tbody.querySelectorAll('tr')); }
+  function cellText(tr, index) { return tr.cells[index]?.textContent?.trim() || ''; }
+  function update() {
+    const query = search.value.trim().toLocaleLowerCase('ja');
+    const selected = category.value;
+    let visible = 0;
+    const rows = currentRows();
+    for (const row of rows) {
+      row.dataset.category = row.querySelector('.rf-category-edit')?.value || 'その他';
+      const matches = (selected === 'all' || row.dataset.category === selected) && row.textContent.toLocaleLowerCase('ja').includes(query);
+      row.hidden = !matches;
+      if (matches) visible++;
+    }
+    empty.hidden = visible > 0;
+    shownCount.textContent = `${visible} 件を表示中`;
+    inputCount.textContent = String(rows.length);
+    categoryCount.textContent = String(new Set(rows.map(r => r.dataset.category)).size);
+    errorCount.textContent = String(errors);
+  }
+  function safeCsvCell(value) {
+    let s = String(value || '');
+    if (/^\s*[=+@\-\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  function makeCsv() {
+    const cols = ['ページタイトル','カテゴリ','概要','所在地','開催日','参照URL','確認状況'];
+    const lines = [cols.map(safeCsvCell).join(',')];
+    for (const tr of currentRows()) {
+      const status = tr.querySelector('.rf-status-edit')?.value || '要確認';
+      if (status === '対象外') continue;
+      const values = [(tr.querySelector('.rf-row-title')?.textContent?.trim() || cellText(tr,0)), tr.dataset.category, cellText(tr,2), cellText(tr,3), cellText(tr,4), tr.dataset.sourceUrl || '', status];
+      lines.push(values.map(safeCsvCell).join(','));
+    }
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+    blobUrl = URL.createObjectURL(new Blob(['\uFEFF' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'}));
+    csvLink.href = blobUrl;
+    csvLink.download = 'researchflow_results.csv';
+  }
+  function metadata(doc, selector, attribute='content') {
+    return (doc.querySelector(selector)?.getAttribute(attribute) || '').trim();
+  }
+  function clean(s, max=200) { return String(s || '').replace(/\s+/g,' ').trim().slice(0,max); }
+  function structured(doc) {
+    const result = {location:'',date:''};
+    function walk(v) {
+      if (Array.isArray(v)) { v.forEach(walk); return; }
+      if (!v || typeof v !== 'object') return;
+      if (!result.location) {
+        const place = v.address || (v.location && v.location.address);
+        if (typeof place === 'string') result.location = clean(place,120);
+        else if (place && typeof place === 'object') result.location = clean([place.addressRegion,place.addressLocality,place.streetAddress].filter(x=>typeof x==='string').join(' '),120);
+      }
+      if (!result.date && (v['@type']==='Event' || (Array.isArray(v['@type']) && v['@type'].includes('Event')))) result.date=clean(v.startDate,60);
+      for (const key of ['@graph','mainEntity','itemListElement']) if(v[key])walk(v[key]);
+    }
+    doc.querySelectorAll('script[type="application/ld+json"]').forEach(script => { try {walk(JSON.parse(script.textContent));} catch(e) {} });
+    return result;
+  }
+  function classify(text) {
+    const patterns = [
+      ['イベント',/イベント|開催|フェス|祭り|マルシェ|ワークショップ|企画展|チケット|開催日|ライトアップ/g],
+      ['グルメ',/レストラン|カフェ|喫茶|ベーカリー|パン屋|ランチ|スイーツ|ケーキ|食堂|飲食|お菓子|テイクアウト/g],
+      ['観光',/観光|展望|史跡|神社|庭園|美術館|資料館|水族館|散策|見学|公園|景色/g]
+    ];
+    const scores = patterns.map(([name,re])=>[name, (text.match(re)||[]).length]);
+    scores.sort((a,b)=>b[1]-a[1]);
+    return scores[0][1]>0?scores[0][0]:'その他';
+  }
+  function parseHtml(raw, fileName) {
+    const doc = new DOMParser().parseFromString(raw,'text/html');
+    const title = clean(metadata(doc,'meta[property="og:title"]') || doc.querySelector('title')?.textContent || doc.querySelector('h1')?.textContent || fileName);
+    const description = clean(metadata(doc,'meta[name="description"]') || metadata(doc,'meta[property="og:description"]'),250);
+    const canonical = clean(metadata(doc,'link[rel="canonical"]','href'),400);
+    const structuredFields = structured(doc);
+    doc.querySelectorAll('script,style,nav,header,footer,aside,noscript').forEach(node=>node.remove());
+    const body=clean(doc.querySelector('main')?.textContent || doc.querySelector('article')?.textContent || doc.body?.textContent,1500);
+    const summary = clean(description || body,100);
+    if(!title && !body)throw new Error('HTMLの本文が読み取れません');
+    return {title, summary, location:structuredFields.location||'未記載', date:structuredFields.date||'—', category:classify(title+' '+description+' '+body), url:canonical, status:'要確認'};
+  }
+  function newCell(tr, text) { const td=document.createElement('td'); td.textContent=text; tr.appendChild(td); return td; }
+  function optionSelect(className, options, value, label) {
+    const select=document.createElement('select'); select.className=className; select.setAttribute('aria-label',label);
+    for(const option of options){const el=document.createElement('option');el.textContent=option;el.value=option;if(option===value)el.selected=true;select.appendChild(el);}
+    return select;
+  }
+  function render(items) {
+    tbody.replaceChildren();
+    for(const item of items){
+      const tr=document.createElement('tr'); tr.dataset.category=item.category; tr.dataset.sourceUrl=item.url;
+      const td=newCell(tr,item.title);td.className='rf-row-title';
+      const cat=document.createElement('td');cat.appendChild(optionSelect('rf-category-edit',['グルメ','観光','イベント','その他'],item.category,'カテゴリを編集'));tr.appendChild(cat);
+      newCell(tr,item.summary);newCell(tr,item.location);newCell(tr,item.date);
+      const status=document.createElement('td');status.appendChild(optionSelect('rf-status-edit',['要確認','確認済み','保留','対象外'],item.status,'確認状況を編集'));tr.appendChild(status);
+      tbody.appendChild(tr);
+    }
+    update(); makeCsv();
+  }
+  fileInput.addEventListener('change', async () => {
+    const files=Array.from(fileInput.files || []).slice(0,8);
+    if(!files.length)return;
+    const rows=[];errors=0;
+    const seen=new Set();
+    for(const file of files){
+      try{
+        if(file.size>1_000_000)throw new Error('容量超過');
+        if(!/\.html?$/i.test(file.name))throw new Error('HTML以外の形式');
+        const item=parseHtml(await file.text(),file.name);
+        const key=item.title.toLocaleLowerCase('ja');
+        if(seen.has(key))throw new Error('重複');
+        seen.add(key); rows.push(item);
+      }catch(error){errors++;}
+    }
+    render(rows);search.value='';category.value='all';update();
+    fileStatus.textContent=`HTML ${files.length}件を解析／成功 ${rows.length}件／失敗・重複 ${errors}件（外部送信なし）`;
+  });
+  document.querySelector('#reset-demo').addEventListener('click', () => {
+    tbody.innerHTML=original; fileInput.value=''; fileStatus.textContent='初期表示：架空のサンプル6件'; errors=0;
+    search.value='';category.value='all';
+    if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
+    csvLink.href=initialCsvHref; update();
+  });
+  tbody.addEventListener('change', event => {
+    if(event.target.matches('.rf-category-edit,.rf-status-edit')) { update();makeCsv(); }
+  });
+  search.addEventListener('input',update);
+  category.addEventListener('change',update);
+  update();
+})();
+
+</script>
+</body>
+</html>

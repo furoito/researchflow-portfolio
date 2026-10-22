@@ -1,0 +1,44 @@
+[
+  {
+    "id": "01_bakery",
+    "label": "焼き菓子専門店",
+    "file": "01_bakery.html",
+    "url": "https://demo.example/bakery",
+    "expected_category": "グルメ"
+  },
+  {
+    "id": "02_cafe",
+    "label": "古民家カフェ",
+    "file": "02_cafe.html",
+    "url": "https://demo.example/cafe",
+    "expected_category": "グルメ"
+  },
+  {
+    "id": "03_observatory",
+    "label": "展望施設",
+    "file": "03_observatory.html",
+    "url": "https://demo.example/observatory",
+    "expected_category": "観光"
+  },
+  {
+    "id": "04_museum",
+    "label": "歴史資料館",
+    "file": "04_museum.html",
+    "url": "https://demo.example/museum",
+    "expected_category": "観光"
+  },
+  {
+    "id": "05_market",
+    "label": "週末マルシェ",
+    "file": "05_market.html",
+    "url": "https://demo.example/market",
+    "expected_category": "イベント"
+  },
+  {
+    "id": "06_lightup",
+    "label": "ライトアップイベント",
+    "file": "06_lightup.html",
+    "url": "https://demo.example/lightup",
+    "expected_category": "イベント"
+  }
+]
