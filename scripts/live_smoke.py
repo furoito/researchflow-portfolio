@@ -68,8 +68,16 @@ def main():
             # Diagnostic: external sites may prohibit bots via robots.txt or 403.
             try:
                 app_frame.get_by_text("公開URLを取得", exact=True).first.click(timeout=12000)
-                app_frame.get_by_role("textbox", name="調査したいページのURL（1行に1件、最大8件）").fill("https://example.com/")
-                app_frame.get_by_role("button", name="情報収集を実行").click()
+                area = app_frame.get_by_role("textbox", name="調査したいページのURL（1行に1件、最大8件）")
+                area.wait_for(timeout=15000)
+                area.fill("https://example.com/")
+                area.press("Tab")
+                # Streamlit text areas commit to session state on blur/rerun.
+                app_frame.get_by_text("処理対象：1件", exact=False).wait_for(timeout=25000)
+                from playwright.sync_api import expect
+                submit = app_frame.get_by_role("button", name="情報収集を実行")
+                expect(submit).to_be_enabled(timeout=20000)
+                submit.click(timeout=20000)
                 app_frame.get_by_role("heading", name="収集・分類結果").wait_for(timeout=40000)
                 page.screenshot(path=str(OUT / "url-result.png"), full_page=True)
                 body = app_frame.locator("body").inner_text(timeout=10000)
@@ -81,6 +89,7 @@ def main():
             except Exception as exc:
                 result["checks"]["external_url_fetch"] = "UNVERIFIED"
                 result["notes"].append(f"URL probe: {type(exc).__name__}: {str(exc)[:400]}")
+                result["notes"].append("UI: " + app_frame.locator("body").inner_text(timeout=5000)[-700:])
         except Exception as exc:
             result["failure"] = f"{type(exc).__name__}: {exc}"
             try:
