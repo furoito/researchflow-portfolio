@@ -99,7 +99,13 @@ def main():
             except Exception as exc:
                 result["checks"]["external_url_fetch"] = "UNVERIFIED"
                 result["notes"].append(f"URL probe: {type(exc).__name__}: {str(exc)[:400]}")
-                result["notes"].append("UI: " + app_frame.locator("body").inner_text(timeout=5000)[-700:])
+                try:
+                    page.screenshot(path=str(OUT / "url-diagnostic.png"), full_page=True, timeout=15000)
+                    visible = app_frame.locator("body").inner_text(timeout=5000)
+                    idx = visible.find("RESULT / RESEARCH SHEET")
+                    result["notes"].append("RESULT_SECTION: " + visible[max(0, idx):][:2700])
+                except Exception as diag:
+                    result["notes"].append(f"diagnostic capture failed: {diag}")
         except Exception as exc:
             result["failure"] = f"{type(exc).__name__}: {exc}"
             try:
