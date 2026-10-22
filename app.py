@@ -193,6 +193,8 @@ if records is not None:
 
     if records:
         st.markdown("**結果を確認・修正**")
+        if any(record.source_kind == "公開URL（部分取得）" for record in records):
+            st.warning("サイズの大きなページは、先頭部分から情報を抽出しました。末尾の内容は取得していない可能性があります。元ページと照合してください。")
         st.caption("分類・概要・所在地などを編集できます。編集内容をCSVに反映します。公開前に必ず原文を照合してください。")
         data = pd.DataFrame([record.display_dict() for record in records])
         editable = st.data_editor(

@@ -1,5 +1,11 @@
 # ResearchFlow v0.7 検証記録
 
+## 2026-10-23 ページサイズ上限修正
+- HTTP HTML取得上限を450KBから4MBへ拡張し、上限を超えるページは先頭部分を解析する方式へ変更。不要な<script>・<style>・SVGを除去して、解析対象を最大30万文字へ制限。
+- 部分取得時は画面に注意文を表示し、CSVに「公開URL（部分取得）」と確認メモを残す。
+- robots.txtは従来どおり厳格な100KB上限を維持し、DNS/SSRF/リダイレクト対策は維持する。
+- 増量・部分取得・巨大スクリプト・JSON-LD・非HTML拒否・robots・文字コードを回帰テストへ追加。
+
 ## 2026-10-23 公開環境での検証（現行）
 
 - 公開URL： https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/

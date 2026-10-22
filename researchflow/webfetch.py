@@ -18,7 +18,7 @@ from urllib.robotparser import RobotFileParser
 import zlib
 
 MAX_URLS = 8
-MAX_BYTES = 450_000
+MAX_BYTES = 4_000_000
 MAX_ROBOTS_BYTES = 100_000
 TIMEOUT_SECONDS = 7
 USER_AGENT = "ResearchFlowPortfolio/0.6 (manual research; no crawler)"
@@ -32,6 +32,7 @@ class FetchedPage:
     url: str
     html: str
     status: int
+    partial: bool = False
 
 
 def validate_public_url(value: str) -> str:
@@ -124,15 +125,34 @@ def _request_once(url: str, *, max_bytes: int = MAX_BYTES) -> tuple[int, dict[st
         })
         response = conn.getresponse()
         headers = {key.lower(): value for key, value in response.getheaders()}
+        headers.pop("x-researchflow-partial", None)  # Internal marker must not come from the website.
         try:
             reported_length = int(headers.get('content-length', '0') or 0)
         except ValueError as exc:
             raise FetchError("Invalid HTTP content length") from exc
-        if reported_length > max_bytes:
+        # Redirect responses do not need a body; the destination is checked
+        # separately, including its DNS address and robots rules.
+        if response.status in (301, 302, 303, 307, 308):
+            return response.status, headers, b""
+
+        content_type = headers.get("content-type", "").split(";", 1)[0].strip().lower()
+        partial_ok = (
+            max_bytes == MAX_BYTES
+            and response.status == 200
+            and content_type in ("text/html", "application/xhtml+xml")
+        )
+        # Keep robots.txt strict: never attempt to decide permission based on a
+        # partial robots file. Page HTML, however, can often be meaningfully
+        # extracted from its beginning even if the tail is enormous.
+        if reported_length > max_bytes and not partial_ok:
             raise FetchError("Response is too large")
         body = response.read(max_bytes + 1)
-        if len(body) > max_bytes:
-            raise FetchError("Response exceeds the size limit")
+        if len(body) > max_bytes or reported_length > max_bytes:
+            if not partial_ok:
+                raise FetchError("Response exceeds the size limit")
+            body = body[:max_bytes]
+            # Internal marker, not a user-supplied HTTP header.
+            headers["x-researchflow-partial"] = "1"
         return response.status, headers, body
     except (OSError, ssl.SSLError, TimeoutError, http.client.HTTPException) as exc:
         raise FetchError("Connection failed, was blocked, or timed out") from exc
@@ -161,6 +181,13 @@ def _decode(body: bytes, headers: dict[str, str], max_bytes: int) -> str:
     try:
         return body.decode(codec)
     except (LookupError, UnicodeDecodeError):
+        if headers.get("x-researchflow-partial") == "1":
+            # A bounded response may end mid-codepoint. Do not interpret the
+            # entire UTF-8 page as CP932 just because of the final byte.
+            try:
+                return body.decode(codec, errors='replace')
+            except LookupError:
+                return body.decode('utf-8', errors='replace')
         try:
             # Common fallback for Japanese news and tourism sites.
             return body.decode('cp932')
@@ -215,6 +242,34 @@ def _check_robots(url: str) -> None:
         raise FetchError(str(exc)) from exc
 
 
+def _compact_web_html(html: str) -> tuple[str, bool]:
+    """Drop bulky embedded code before parsing; bound parser input.
+
+    This is only applied to fetched web pages. Large downloadable documents
+    remain unsupported, and the original page is not represented as complete
+    when actual HTML content must be truncated.
+    """
+    from .extract import MAX_HTML_CHARS
+
+    if len(html) <= MAX_HTML_CHARS:
+        return html, False
+    # Ordinary scripts, style sheets and inline SVG frequently account for the
+    # majority of modern page HTML. JSON-LD may contain location/event facts,
+    # so retain small valid structured-data blocks for extract_page().
+    html = re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
+
+    def keep_structured_data(match: re.Match[str]) -> str:
+        script = match.group(0)
+        tag = script[:script.find('>') + 1]
+        ldjson = re.search(r"\btype\s*=\s*(?:[\"']application/ld\+json[\"']|application/ld\+json(?:\s|>))", tag, flags=re.I)
+        return script if ldjson and len(script) <= 40_000 else ""
+
+    html = re.sub(r"<script\b[^>]*>.*?</script\s*>", keep_structured_data, html, flags=re.I | re.S)
+    html = re.sub(r"<(?:style|svg)\b[^>]*>.*?</(?:style|svg)\s*>", "", html, flags=re.I | re.S)
+    is_cut = len(html) > MAX_HTML_CHARS
+    return html[:MAX_HTML_CHARS] if is_cut else html, is_cut
+
+
 def fetch_public_page(url: str) -> FetchedPage:
     url = validate_public_url(url)
     _check_robots(url)
@@ -225,11 +280,13 @@ def fetch_public_page(url: str) -> FetchedPage:
     if ctype not in ('text/html', 'application/xhtml+xml'):
         raise FetchError("URL did not return an HTML page")
     text = _decode(body, headers, MAX_BYTES)
-    if len(text) > 300_000:
-        raise FetchError("Page exceeds the HTML parser limit")
+    text, parser_cut = _compact_web_html(text)
     if not text.strip():
         raise FetchError("Response contains no readable HTML")
-    return FetchedPage(url=final_url, html=text, status=status)
+    return FetchedPage(
+        url=final_url, html=text, status=status,
+        partial=(headers.get("x-researchflow-partial") == "1" or parser_cut),
+    )
 
 
 def parse_url_lines(text: str) -> list[str]:
@@ -258,7 +315,7 @@ def gather_web_sources(urls: list[str], *, fetcher=fetch_public_page) -> tuple[l
                 errors.append(f"URL {index}: duplicate redirect target")
                 continue
             seen.add(page.url)
-            sources.append((f'URL {index}', page.html, page.url, 'web-url'))
+            sources.append((f'URL {index}', page.html, page.url, 'web-url-partial' if page.partial else 'web-url'))
         except (FetchError, ValueError) as exc:
             errors.append(f'URL {index}: {exc}')
     return sources, errors

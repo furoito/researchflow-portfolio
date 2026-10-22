@@ -65,7 +65,8 @@ def make_record(page: ExtractedPage, *, mode: str = "local", api_key: str = "") 
         extraction_method="BeautifulSoup（HTML）",
         categorization_method=method,
         review_status="要確認（デモ）" if page.source_type == "demo-html" else "要確認",
-        source_kind={"web-url": "公開URL", "uploaded-html": "HTMLファイル", "demo-html": "サンプル"}.get(page.source_type, page.source_type),
+        review_note=("大きなページの先頭部分のみ解析しました。元ページで内容を確認してください。" if page.source_type == "web-url-partial" else ""),
+        source_kind={"web-url": "公開URL", "web-url-partial": "公開URL（部分取得）", "uploaded-html": "HTMLファイル", "demo-html": "サンプル"}.get(page.source_type, page.source_type),
         evidence_excerpt=(page.description or page.heading or page.body)[:230],
         ml_score=score,
     )
