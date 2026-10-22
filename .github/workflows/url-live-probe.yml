@@ -1,0 +1,30 @@
+name: ResearchFlow real URL E2E
+on:
+  push:
+    paths:
+      - '.github/workflows/url-live-probe.yml'
+      - 'scripts/url_live_probe.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-url:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser driver only
+        run: |
+          python3 -m pip install --quiet playwright
+          command -v google-chrome
+      - name: Fetch real public URL through deployed Streamlit app
+        env:
+          RESEARCHFLOW_LIVE_URL: https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/
+        run: python3 scripts/url_live_probe.py
+      - name: Save evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: researchflow-real-url-e2e
+          path: url-probe-artifacts/
+          if-no-files-found: ignore
