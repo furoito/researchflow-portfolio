@@ -4,6 +4,10 @@ on:
     paths:
       - '.github/workflows/url-live-probe.yml'
       - 'scripts/url_live_probe.py'
+      - 'researchflow/**'
+      - 'tests/**'
+      - 'app.py'
+      - 'requirements.txt'
   workflow_dispatch:
 permissions:
   contents: read
@@ -13,10 +17,12 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Install browser driver only
+      - name: Install dependencies and browser driver
         run: |
-          python3 -m pip install --quiet playwright
+          python3 -m pip install --quiet -r requirements.txt pytest playwright
           command -v google-chrome
+      - name: Run full regression suite
+        run: python3 -m pytest -q
       - name: Fetch real public URL through deployed Streamlit app
         env:
           RESEARCHFLOW_LIVE_URL: https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/
