@@ -1,5 +1,10 @@
 # ResearchFlow v0.7 — Webメディア向け情報収集ツール
 
+**公開アプリ：** https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/
+
+**公開環境で確認済み：** 画面の表示、架空HTML 6件の抽出・分類、編集結果のCSVダウンロード（GitHub Actionsのブラウザ検証）。公開URLからの実ページ取得はサイト側のアクセス制限等を含め、別途検証が必要です。
+
+
 公開URL、HTMLファイル、または同梱サンプルを入力し、ページからタイトル・概要・所在地・開催日を抽出し、カテゴリを推定して編集可能な一覧表とCSVを作成するポートフォリオ用ツールです。
 
 外観はv0.5のデザインを維持し、v0.6で実装した公開URL取得・編集・CSV保存に対応しています。v0.7は初回操作を簡単にし、GitHubとStreamlit Community Cloudへの公開準備を進めた版です。
