@@ -1,4 +1,19 @@
-# v0.7 公開前検証結果
+# ResearchFlow v0.7 検証記録
+
+## 2026-10-23 公開環境での検証（現行）
+
+- 公開URL： https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/
+- GitHub Actions： https://github.com/furoito/researchflow-portfolio/actions/runs/39825897356
+- Chromium経由の実ブラウザ操作で `https://example.com/` を入力、実行して取得・解析成功1件、エラー0件を確認。
+- **CSVダウンロードにも成功**。実出力で `ページタイトル=Example Domain`、`参照URL=https://example.com/`、`入力元=公開URL`、`抽出方法=BeautifulSoup（HTML）`、`分類方法=ローカル軽量ML（無料）` を確認。
+- サンプルHTML 6件の抽出・分類、CSV出力も別のブラウザテストで合格： https://github.com/furoito/researchflow-portfolio/actions/runs/39822090241
+- 公開URLの到達性、サンプル処理、実URL処理、CSV出力まで確認済み。ただし**外部サイトごとのrobots.txt/403やページ構造、分類精度**は保証しない。Gemini実通信も未検証。
+- 当初「実URL取得が失敗」となった理由は、Streamlitの`st.data_editor`内の値が通常のDOM本文に現れず、ブラウザテストがタイトル文字列を見つけられなかったこと。**CSV実データを検証する方法に変更し解消**。
+
+---
+
+## 以下はデプロイ前に作成した検証記録（当時の状態）
+
 
 ## Verified in this environment
 

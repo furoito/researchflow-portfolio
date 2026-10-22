@@ -2,7 +2,7 @@
 
 **公開アプリ：** https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/
 
-**公開環境で確認済み：** 画面の表示、架空HTML 6件の抽出・分類、編集結果のCSVダウンロード（GitHub Actionsのブラウザ検証）。公開URLからの実ページ取得はサイト側のアクセス制限等を含め、別途検証が必要です。
+**公開環境で確認済み（2026-10-23）：** Streamlitの画面表示、サンプルHTML 6件の抽出・分類とCSV保存、および**実在する公開URL `https://example.com/` のHTTP取得 → タイトル・本文抽出 → ローカル分類 → CSV保存**。CSVにはタイトル `Example Domain`、参照URL `https://example.com/`、入力元 `公開URL` が保存されました。[GitHub Actionsの実URL E2E検証結果](https://github.com/furoito/researchflow-portfolio/actions/runs/39825897356)。取得可能性はサイトごとのrobots.txtやアクセス制限に左右されます。
 
 
 公開URL、HTMLファイル、または同梱サンプルを入力し、ページからタイトル・概要・所在地・開催日を抽出し、カテゴリを推定して編集可能な一覧表とCSVを作成するポートフォリオ用ツールです。
@@ -73,8 +73,8 @@ python scripts/interactive_qa.py
 
 テストには、URLの入力検証・DNSの内部IP拒否・リダイレクトの安全性・robots.txt・模擬URL取得から分類・確認修正・CSV出力・ブラウザのファイル読み込みと編集操作を含みます。
 
-**未検証：** 作業環境にStreamlitパッケージがなく、外部DNSアクセスが制限されているため、Streamlit本体の起動と実際のインターネットサイトへのGETは、この環境では確認できませんでした。単体・統合モックテストとブラウザ版の実操作を検証しています。公開前にStreamlit Cloud上で、アクセス許可されている公開URLを使って最終検証が必要です。
+**検証範囲：** 開発コンテナからの外部DNSアクセスは不可でしたが、公開済みのStreamlit Community CloudをGitHub ActionsのChromiumから操作し、実URL取得・抽出・CSV出力を実測しました。公開URL `example.com` の1件で成功した事実であり、任意のサイトの成功や分類精度を保証するものではありません。Gemini APIの実通信と、第三者サイトの多件数・継続運用は未検証です。
 
-## 公開までのステップ
+## 公開状況
 
-専用の手順書 [DEPLOY.md](DEPLOY.md) にGitHubリポジトリ作成、Streamlit Community Cloudでの初回デプロイ、公開後の動作確認を記載しています。GitHubのソースコードと公開手順を確認できます。Streamlit Community Cloudでのデプロイおよび実サイトでの動作確認は別途必要です。
+[Streamlit Community Cloudで公開中](https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/)。[DEPLOY.md](DEPLOY.md) には再デプロイ手順を記載しています。ブラウザからの実URL処理検証は [ResearchFlow real URL E2E](https://github.com/furoito/researchflow-portfolio/actions/runs/39825897356) を参照してください。
