@@ -78,14 +78,24 @@ def main():
                 submit = app_frame.get_by_role("button", name="情報収集を実行")
                 expect(submit).to_be_enabled(timeout=20000)
                 submit.click(timeout=20000)
-                app_frame.get_by_role("heading", name="収集・分類結果").wait_for(timeout=40000)
+                # The prior sample result remains visible while the URL request
+                # is running, so wait for evidence of the *new* result.
+                app_frame.wait_for_function(
+                    """() => {
+                        const t = document.body.innerText;
+                        return t.includes('Example Domain') ||
+                               t.includes('取得できたページはありません') ||
+                               t.includes('取得できなかった項目・重複');
+                    }""",
+                    timeout=60000,
+                )
                 page.screenshot(path=str(OUT / "url-result.png"), full_page=True)
                 body = app_frame.locator("body").inner_text(timeout=10000)
                 if "Example Domain" in body:
                     result["checks"]["external_url_fetch"] = "PASS"
                 else:
                     result["checks"]["external_url_fetch"] = "UNVERIFIED"
-                    result["notes"].append(body[-800:])
+                    result["notes"].append(body[max(0, body.find("収集・分類結果")):][:1800])
             except Exception as exc:
                 result["checks"]["external_url_fetch"] = "UNVERIFIED"
                 result["notes"].append(f"URL probe: {type(exc).__name__}: {str(exc)[:400]}")
