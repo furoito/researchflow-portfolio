@@ -5,6 +5,7 @@ on:
       - '.github/workflows/url-live-probe.yml'
       - 'scripts/url_live_probe.py'
       - 'researchflow/**'
+      - 'preview.html'
       - 'tests/**'
       - 'app.py'
       - 'requirements.txt'
