@@ -18,11 +18,11 @@ from playwright.sync_api import expect, sync_playwright
 
 APP_URL = os.getenv("RESEARCHFLOW_LIVE_URL", "https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/")
 PAGES = [
-    {"company": "ARTVIBES", "url": "https://artvibes.co.jp/company/", "identity_terms": ["アートバイブス", "artvibes"]},
-    {"company": "サイボウズ", "url": "https://cybozu.co.jp/company/outline/", "identity_terms": ["サイボウズ", "cybozu"]},
-    {"company": "さくらインターネット", "url": "https://www.sakura.ad.jp/corporate/corp/profile/", "identity_terms": ["さくらインターネット", "sakura"]},
-    {"company": "はてな", "url": "https://www.hatena.ne.jp/ownedmedia/company", "identity_terms": ["はてな", "hatena"]},
-    {"company": "ARTVIBESトップページ", "url": "https://artvibes.co.jp/", "identity_terms": ["アートバイブス", "artvibes"]},
+    {"company": "ARTVIBES", "url": "https://artvibes.co.jp/company/", "identity_terms": ["アートバイブス", "artvibes"], "expected_category": "企業・団体"},
+    {"company": "サイボウズ", "url": "https://cybozu.co.jp/company/outline/", "identity_terms": ["サイボウズ", "cybozu"], "expected_category": "企業・団体"},
+    {"company": "さくらインターネット", "url": "https://www.sakura.ad.jp/corporate/corp/profile/", "identity_terms": ["さくらインターネット", "sakura"], "expected_category": "企業・団体"},
+    {"company": "はてな", "url": "https://www.hatena.ne.jp/ownedmedia/company", "identity_terms": ["はてな", "hatena"], "expected_category": "企業・団体"},
+    {"company": "ARTVIBESトップページ", "url": "https://artvibes.co.jp/", "identity_terms": ["アートバイブス", "artvibes"], "expected_category": "商品・サービス"},
 ]
 OUT = Path("corporate-test-results")
 OUT.mkdir(exist_ok=True)
@@ -65,6 +65,10 @@ def capture_result():
             if frame is None:
                 raise AssertionError("The deployed Streamlit input form could not be found")
             report["checks"]["live_app_loaded"] = True
+            version_text = frame.locator("body").inner_text(timeout=9000)
+            report["checks"]["new_classification_ui"] = "8カテゴリに分類" in version_text
+            if not report["checks"]["new_classification_ui"]:
+                raise AssertionError("Published app is not yet using the new eight-category classifier")
             frame.get_by_text("公開URLを取得", exact=True).first.click(timeout=18000)
             area = frame.get_by_role("textbox", name="調査したいページのURL（1行に1件、最大8件）")
             area.fill("\n".join(x["url"] for x in PAGES))
@@ -113,6 +117,10 @@ def capture_result():
                         "title": title,
                         "summary": desc,
                         "category": row.get("カテゴリ"),
+                        "expected_category": site["expected_category"],
+                        "page_purpose_matches": row.get("カテゴリ") == site["expected_category"],
+                        "classification_method": row.get("分類方法"),
+                        "classification_reason": row.get("分類根拠"),
                         "location": row.get("所在地"),
                         "event_date": row.get("開催日"),
                         "input_source": source,
@@ -134,6 +142,13 @@ def capture_result():
                 for r in report["rows"]
             )
             report["checks"]["real_company_rows"] = sum(1 for x in report["per_site"] if x["status"] == "EXPORTED")
+            report["checks"]["correct_purpose_categories"] = sum(
+                1 for x in report["per_site"] if x.get("page_purpose_matches")
+            )
+            report["checks"]["all_rows_have_explanations"] = (
+                len(report["rows"]) == len(PAGES)
+                and all(r.get("分類根拠") for r in report["rows"])
+            )
             report["checks"]["identified_company_rows"] = sum(
                 1 for x in report["per_site"] if x.get("identity_in_title_or_summary")
             )
@@ -156,7 +171,10 @@ def capture_result():
     # A majority of real corporate sites must be exportable, otherwise fail CI.
     ok = (report["checks"].get("real_company_rows", 0) >= 3
           and report["checks"].get("exported_urls_expected") is True
-          and report["checks"].get("no_sample_rows") is True)
+          and report["checks"].get("no_sample_rows") is True
+          and report["checks"].get("new_classification_ui") is True
+          and report["checks"].get("correct_purpose_categories", 0) == len(PAGES)
+          and report["checks"].get("all_rows_have_explanations") is True)
     if not ok:
         raise SystemExit(1)
 
