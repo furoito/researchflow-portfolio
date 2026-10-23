@@ -12,7 +12,6 @@
   const fileStatus = document.querySelector('#file-status');
   const csvLink = document.querySelector('.rf-download');
   const original = tbody.innerHTML;
-  const initialCsvHref = csvLink.href;
   let blobUrl = null;
   let errors = 0;
 
@@ -41,12 +40,12 @@
     return '"' + s.replace(/"/g, '""') + '"';
   }
   function makeCsv() {
-    const cols = ['ページタイトル','カテゴリ','概要','所在地','開催日','参照URL','確認状況'];
+    const cols = ['ページタイトル','カテゴリ','概要','参照URL','確認状況'];
     const lines = [cols.map(safeCsvCell).join(',')];
     for (const tr of currentRows()) {
       const status = tr.querySelector('.rf-status-edit')?.value || '要確認';
       if (status === '対象外') continue;
-      const values = [(tr.querySelector('.rf-row-title')?.textContent?.trim() || cellText(tr,0)), tr.dataset.category, cellText(tr,2), cellText(tr,3), cellText(tr,4), tr.dataset.sourceUrl || '', status];
+      const values = [(tr.querySelector('.rf-row-title')?.textContent?.trim() || cellText(tr,0)), tr.dataset.category, cellText(tr,2), tr.dataset.sourceUrl || '', status];
       lines.push(values.map(safeCsvCell).join(','));
     }
     if (blobUrl) URL.revokeObjectURL(blobUrl);
@@ -58,22 +57,6 @@
     return (doc.querySelector(selector)?.getAttribute(attribute) || '').trim();
   }
   function clean(s, max=200) { return String(s || '').replace(/\s+/g,' ').trim().slice(0,max); }
-  function structured(doc) {
-    const result = {location:'',date:''};
-    function walk(v) {
-      if (Array.isArray(v)) { v.forEach(walk); return; }
-      if (!v || typeof v !== 'object') return;
-      if (!result.location) {
-        const place = v.address || (v.location && v.location.address);
-        if (typeof place === 'string') result.location = clean(place,120);
-        else if (place && typeof place === 'object') result.location = clean([place.addressRegion,place.addressLocality,place.streetAddress].filter(x=>typeof x==='string').join(' '),120);
-      }
-      if (!result.date && (v['@type']==='Event' || (Array.isArray(v['@type']) && v['@type'].includes('Event')))) result.date=clean(v.startDate,60);
-      for (const key of ['@graph','mainEntity','itemListElement']) if(v[key])walk(v[key]);
-    }
-    doc.querySelectorAll('script[type="application/ld+json"]').forEach(script => { try {walk(JSON.parse(script.textContent));} catch(e) {} });
-    return result;
-  }
   function classify(text) {
     const title = clean(text.split('\n')[0] || text, 400).toLocaleLowerCase('ja');
     const candidates = [
@@ -95,12 +78,11 @@
     const title = clean(metadata(doc,'meta[property="og:title"]') || doc.querySelector('title')?.textContent || doc.querySelector('h1')?.textContent || fileName);
     const description = clean(metadata(doc,'meta[name="description"]') || metadata(doc,'meta[property="og:description"]'),250);
     const canonical = clean(metadata(doc,'link[rel="canonical"]','href'),400);
-    const structuredFields = structured(doc);
     doc.querySelectorAll('script,style,nav,header,footer,aside,noscript').forEach(node=>node.remove());
     const body=clean(doc.querySelector('main')?.textContent || doc.querySelector('article')?.textContent || doc.body?.textContent,1500);
     const summary = clean(description || body,100);
     if(!title && !body)throw new Error('HTMLの本文が読み取れません');
-    return {title, summary, location:structuredFields.location||'未記載', date:structuredFields.date||'—', category:classify(title+'\n'+description+'\n'+body), url:canonical, status:'要確認'};
+    return {title, summary, category:classify(title+'\n'+description+'\n'+body), url:canonical, status:'要確認'};
   }
   function newCell(tr, text) { const td=document.createElement('td'); td.textContent=text; tr.appendChild(td); return td; }
   function optionSelect(className, options, value, label) {
@@ -114,7 +96,7 @@
       const tr=document.createElement('tr'); tr.dataset.category=item.category; tr.dataset.sourceUrl=item.url;
       const td=newCell(tr,item.title);td.className='rf-row-title';
       const cat=document.createElement('td');cat.appendChild(optionSelect('rf-category-edit',['企業・団体','商品・サービス','採用・求人','ニュース・記事','イベント','飲食・店舗','観光・施設','その他'],item.category,'カテゴリを編集'));tr.appendChild(cat);
-      newCell(tr,item.summary);newCell(tr,item.location);newCell(tr,item.date);
+      newCell(tr,item.summary);
       const status=document.createElement('td');status.appendChild(optionSelect('rf-status-edit',['要確認','確認済み','保留','対象外'],item.status,'確認状況を編集'));tr.appendChild(status);
       tbody.appendChild(tr);
     }
@@ -142,12 +124,12 @@
     tbody.innerHTML=original; fileInput.value=''; fileStatus.textContent='初期表示：架空のサンプル6件'; errors=0;
     search.value='';category.value='all';
     if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
-    csvLink.href=initialCsvHref; update();
+    update(); makeCsv();
   });
   tbody.addEventListener('change', event => {
     if(event.target.matches('.rf-category-edit,.rf-status-edit')) { update();makeCsv(); }
   });
   search.addEventListener('input',update);
   category.addEventListener('change',update);
-  update();
+  update(); makeCsv();
 })();

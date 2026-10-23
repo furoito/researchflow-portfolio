@@ -19,6 +19,8 @@ import streamlit as st
 from importlib import reload
 import researchflow.classify as _classify_module
 import researchflow.gemini as _gemini_module
+import researchflow.extract as _extract_module
+import researchflow.presentation as _presentation_module
 import researchflow.process as _process_module
 import researchflow.workflow as _workflow_module
 
@@ -29,11 +31,17 @@ _EXPECTED_CATEGORIES = (
 if (
     tuple(_classify_module.CATEGORIES) != _EXPECTED_CATEGORIES
     or "分類根拠" not in _process_module.EXPORT_COLUMNS
+    or "所在地" in _process_module.EXPORT_COLUMNS
+    or "開催日" in _process_module.EXPORT_COLUMNS
+    or "location" in _extract_module.ExtractedPage.__dataclass_fields__
+    or "所在地" in _presentation_module.HERO
 ):
     reload(_classify_module)
     reload(_gemini_module)
+    reload(_extract_module)
     reload(_process_module)
     reload(_workflow_module)
+    reload(_presentation_module)
 
 from researchflow.classify import TRAINING_SAMPLES, CATEGORIES
 from researchflow.presentation import DEMO_INTRO, FEATURE, FOOTER, HERO, SITE_HEADER, WORKFLOW
@@ -53,6 +61,13 @@ st.set_page_config(
 )
 
 # Keep original app and offline preview visually aligned through one CSS file.
+# Clear previously-exported rows when an already-open browser receives a new schema.
+CURRENT_OUTPUT_SCHEMA = "v0.9-simple-research-sheet"
+if st.session_state.get("research_schema_version") != CURRENT_OUTPUT_SCHEMA:
+    st.session_state.pop("research_records", None)
+    st.session_state.pop("research_errors", None)
+    st.session_state["research_schema_version"] = CURRENT_OUTPUT_SCHEMA
+
 st.markdown(f"<style>{CSS_FILE.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 
@@ -217,7 +232,7 @@ if records is not None:
         st.markdown("**結果を確認・修正**")
         if any(record.source_kind == "公開URL（部分取得）" for record in records):
             st.warning("サイズの大きなページは、先頭部分から情報を抽出しました。末尾の内容は取得していない可能性があります。元ページと照合してください。")
-        st.caption("分類・概要・所在地などを編集できます。編集内容をCSVに反映します。公開前に必ず原文を照合してください。")
+        st.caption("カテゴリ・概要・確認状況を編集できます。変更はCSVに反映されます。公開前に原文を照合してください。")
         data = pd.DataFrame([record.display_dict() for record in records])
         editable = st.data_editor(
             data, hide_index=True, use_container_width=True, num_rows="fixed",

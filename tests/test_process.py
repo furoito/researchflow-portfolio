@@ -32,14 +32,13 @@ def test_duplicate_url_is_skipped(samples):
 def test_csv_formula_injection_is_escaped():
     row = ResearchRecord(
         title='=HYPERLINK("https://fake.invalid")', category="その他", summary="@SUM(A1:A4)",
-        location="+1", event_date="-1", url="=cmd", extraction_method="html", categorization_method="ml", review_status="未確認",
+        url="=cmd", extraction_method="html", categorization_method="ml", review_status="未確認",
     )
     content = to_csv_bytes([row]).decode("utf-8-sig")
     data = list(csv.DictReader(StringIO(content)))[0]
     assert data["ページタイトル"].startswith("'=")
     assert data["概要"].startswith("'@")
-    assert data["所在地"].startswith("'+")
-    assert data["開催日"].startswith("'-")
+    assert data["参照URL"].startswith("'=")
 
 
 def test_invalid_html_is_reported_and_other_entries_continue(samples):

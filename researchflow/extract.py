@@ -20,8 +20,6 @@ class ExtractedPage:
     description: str
     heading: str
     body: str
-    location: str
-    event_date: str
     source_url: str
     source_type: str  # demo-html / uploaded-html
 
@@ -68,33 +66,13 @@ def _jsonld(soup: BeautifulSoup) -> list[dict]:
     return nodes
 
 
-def _json_address(value: Any) -> str:
-    if isinstance(value, str):
-        return _clean(value, limit=120)
-    if not isinstance(value, dict):
-        return ""
-    pieces = [value.get(k, "") for k in ("addressRegion", "addressLocality", "streetAddress")]
-    return _clean(" ".join(piece for piece in pieces if isinstance(piece, str)), limit=120)
-
-
-def _structured_fields(nodes: list[dict]) -> tuple[str, str, str]:
-    structured_title = ""
-    location = ""
-    date = ""
+def _structured_title(nodes: list[dict]) -> str:
+    """Use structured data only as a fallback for a missing page title."""
     for node in nodes:
-        if not structured_title:
-            structured_title = _clean(node.get("headline") or node.get("name") or "")
-        if not location:
-            addr = node.get("address")
-            if not addr and isinstance(node.get("location"), dict):
-                addr = node["location"].get("address")
-            location = _json_address(addr)
-        if not date:
-            node_type = node.get("@type", "")
-            is_event = node_type == "Event" or (isinstance(node_type, list) and "Event" in node_type)
-            if is_event:
-                date = _clean(node.get("startDate", ""), limit=60)
-    return structured_title, location, date
+        title = _clean(node.get("headline") or node.get("name") or "")
+        if title:
+            return title
+    return ""
 
 
 def extract_page(html: str, *, source_id: str, source_url: str = "", source_type: str = "demo-html") -> ExtractedPage:
@@ -105,7 +83,7 @@ def extract_page(html: str, *, source_id: str, source_url: str = "", source_type
 
     soup = BeautifulSoup(html, "html.parser")
     nodes = _jsonld(soup)
-    structured_title, location, event_date = _structured_fields(nodes)
+    structured_title = _structured_title(nodes)
     title_tag = soup.find("title")
     title = (_meta(soup, prop="og:title") or
              _clean(title_tag.get_text(" ", strip=True) if title_tag else "") or structured_title)
@@ -126,8 +104,6 @@ def extract_page(html: str, *, source_id: str, source_url: str = "", source_type
         description=description,
         heading=heading,
         body=body,
-        location=location,
-        event_date=event_date,
         source_url=_clean(source_url, limit=450),
         source_type=source_type,
     )

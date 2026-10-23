@@ -291,7 +291,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
     <div class="rf-hero-lower">
       <div class="rf-hero-copy">
         <span class="rf-mini-index">WHAT IS RESEARCHFLOW?</span>
-        <p class="rf-hero-lead">公開ページのURLや保存したHTMLから、タイトルや所在地などを抽出します。<br class="rf-only-desktop"/>自動分類した結果を確認・修正し、CSVで保存できます。</p>
+        <p class="rf-hero-lead">公開ページのURLや保存したHTMLから、タイトルと概要を抽出します。<br class="rf-only-desktop"/>自動分類した結果を確認・修正し、CSVで保存できます。</p>
         <span class="rf-hero-micro">実際の公開URLに対応 ／ 標準モードはAPIキー不要</span>
       </div>
       <a href="#demo" class="rf-action-primary" aria-label="See the research demo"><span>結果を<br>見る</span><b aria-hidden="true">&#8599;</b></a>
@@ -317,7 +317,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
     <article class="rf-workflow-item">
        <span class="rf-step-no">01</span>
        <h3>抽出<small>EXTRACT</small></h3>
-       <p>公開URLまたはHTMLファイルから、タイトル・所在地・開催日などを取得します。</p>
+       <p>公開URLまたはHTMLファイルから、タイトル・概要・本文から情報を抽出します。</p>
        <span class="rf-step-arrow" aria-hidden="true">&#8599;</span>
     </article>
     <article class="rf-workflow-item">
@@ -347,7 +347,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
     <div class="rf-import-copy">
       <span class="rf-mini-index">TRY WITH YOUR OWN DATA</span>
       <h3>手元のHTMLを解析する</h3>
-      <p>HTMLファイルを選択すると、このブラウザ内でタイトル・概要・所在地などを抽出し、一覧表に反映します。サーバーには送信されません。</p>
+      <p>HTMLファイルを選択すると、このブラウザ内でタイトル・概要を抽出し、一覧表に反映します。サーバーには送信されません。</p>
       <p class="rf-import-small">ブラウザ版は簡易キーワード分類です。公開URLの直接取得と機械学習分類は、Streamlitアプリ版で利用できます。</p>
     </div>
     <div class="rf-import-controls">
@@ -377,18 +377,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
         <option value="その他">その他</option>
       </select>
     </div>
-    <a class="rf-download" download="researchflow_results.csv" href="data:text/csv;base64,77u/44Oa44O844K444K/44Kk44OI44OrLOOCq+ODhuOCtOODqizmpoLopoEs5omA5Zyo5ZywLOmWi+WCrOaXpSzlj4LnhadVUkws5oq95Ye65pa55rOVLOWIhumhnuaWueazlSzliIbpoZ7moLnmi6As56K66KqN54q25rOBLOeiuuiqjeODoeODoizlhaXlipvlhYMNCuaciOOBguOBi+OCiueEvOiPk+WtkOW6l++9nOWto+evgOOBruOCv+ODq+ODiOOBqOOCr+ODg+OCreODvCzpo7Lpo5/jg7vlupfoiJcs5oSb55+l55yM5ZCN5Y+k5bGL5biC44Gu54S844GN6I+T5a2Q5bCC6ZaA5bqX44CC5a2j56+A44Gu44K/44Or44OI44KE44Kv44OD44Kt44O844KS5bqX6aCt6LKp5aOy44CC5Za25qWt5pmC6ZaT44GvMTDmmYLjgYvjgokxOOaZguOAgeeBq+abnOWumuS8keOAgizmhJvnn6XnnIwg5ZCN5Y+k5bGL5biCIOS4reWMujEtMi0zLOacquiomOi8iSxodHRwczovL2RlbW8uZXhhbXBsZS9iYWtlcnksQmVhdXRpZnVsU291cO+8iEhUTUzvvIks5piO56S66Kqe5Y+l44Gr44KI44KL5YiG6aGeLOimi+WHuuOBl+OBruOAjOeEvOOBjeiPk+WtkOOAjSzopoHnorroqo3vvIjjg4fjg6LvvIksLOOCteODs+ODl+ODqw0K6aKo6KaL6I2J44Kr44OV44Kn772c44Op44Oz44OB44Go6Ieq5a6254SZ54WO44Kz44O844OS44O8LOmjsumjn+ODu+W6l+iIlyzlspDpmJznnIzlpJrmsrvopovluILjga7lj6TmsJHlrrbjgqvjg5XjgqfjgILoh6rlrrbnhJnnhY7jgrPjg7zjg5Ljg7zjgajlnLDlhYPph47oj5zjga7jg6njg7Pjg4HjgpLmj5DkvpvjgZfjgabjgYTjgb7jgZnjgIIs5bKQ6Zic55yMIOWkmuayu+imi+W4giDnmb3lt53nlLo0LTUtNizmnKroqJjovIksaHR0cHM6Ly9kZW1vLmV4YW1wbGUvY2FmZSxCZWF1dGlmdWxTb3Vw77yISFRNTO+8iSzmmI7npLroqp7lj6XjgavjgojjgovliIbpoZ4s44K/44Kk44OI44Or44Gu44CM44Kr44OV44Kn44CNLOimgeeiuuiqje+8iOODh+ODou+8iSws44K144Oz44OX44OrDQrljZfmuK/jgb/jga/jgonjgZfjg4bjg6njgrnvvZzmtbfjga7poqjmma/jgpLmpb3jgZfjgoDlsZXmnJvmlr3oqK0s6Kaz5YWJ44O75pa96KitLOaEm+efpeecjOiSsumDoeW4guOBrua4r+OCkuimi+a4oeOBm+OCi+Wxleacm+ODhuODqeOCueOAguaVo+etlui3r+OBqOaSruW9seOCueODneODg+ODiOOCkualveOBl+OCgeOCi+ims+WFieOCueODneODg+ODiOOBp+OBmeOAgizmhJvnn6XnnIwg6JKy6YOh5biCIOa1t+WyuOeUujctOC05LOacquiomOi8iSxodHRwczovL2RlbW8uZXhhbXBsZS9vYnNlcnZhdG9yeSxCZWF1dGlmdWxTb3Vw77yISFRNTO+8iSzmmI7npLroqp7lj6XjgavjgojjgovliIbpoZ4s6KaL5Ye644GX44Gu44CM5bGV5pyb44CNLOimgeeiuuiqje+8iOODh+ODou+8iSws44K144Oz44OX44OrDQrlsbHph4zmrbTlj7Los4fmlpnppKjvvZzmmJTjga7mmq7jgonjgZfjgajlnLDln5/mlofljJbjga7lsZXnpLos6Kaz5YWJ44O75pa96KitLOmVt+mHjuecjOmjr+eUsOW4guOBruattOWPsuizh+aWmemkqOOAgumDt+Wcn+izh+aWmeOChOS8nee1seW3peiKuOOCkue0ueS7i+OBmeOCi+W4uOioreWxleekuuOBjOOBguOCiuOBvuOBmeOAgizplbfph47nnIwg6aOv55Sw5biCIOacrOeUujItMS0xLOacquiomOi8iSxodHRwczovL2RlbW8uZXhhbXBsZS9tdXNldW0sQmVhdXRpZnVsU291cO+8iEhUTUzvvIks5piO56S66Kqe5Y+l44Gr44KI44KL5YiG6aGeLOOCv+OCpOODiOODq+OBruOAjOizh+aWmemkqOOAjSzopoHnorroqo3vvIjjg4fjg6LvvIksLOOCteODs+ODl+ODqw0K6aeF5YmN44Kv44Op44OV44OI44Oe44Or44K344KnMjAyNu+9nOmAseacq+OCpOODmeODs+ODiCzjgqTjg5njg7Pjg4gsMjAyNuW5tDEx5pyIN+aXpeOBq+aEm+efpeecjOWyoeW0juW4guOBp+mWi+WCrOOBmeOCi+mAseacq+ODnuODq+OCt+OCp+OAguWcsOWfn+OBruS9nOWutuOBq+OCiOOCi+mbkeiyqOiyqeWjsuOChOS9k+mok+ODr+ODvOOCr+OCt+ODp+ODg+ODl+OCkuWun+aWveOAgizmhJvnn6XnnIwg5bKh5bSO5biCIOmnheWJjemAmuOCijMtMi0xLDIwMjYtMTEtMDcsaHR0cHM6Ly9kZW1vLmV4YW1wbGUvbWFya2V0LEJlYXV0aWZ1bFNvdXDvvIhIVE1M77yJLOaYjuekuuiqnuWPpeOBq+OCiOOCi+WIhumhnizjgr/jgqTjg4jjg6vjga7jgIzjg57jg6vjgrfjgqfjgI0s6KaB56K66KqN77yI44OH44Oi77yJLCzjgrXjg7Pjg5fjg6sNCuawtOi+uuOBruOBguOBi+OCiuelreOCiu+9nOeni+OBruODqeOCpOODiOOCouODg+ODl+mWi+WCrCzjgqTjg5njg7Pjg4gs6Z2Z5bKh55yM5rWc5p2+5biC44GnMjAyNuW5tDEy5pyINeaXpeOBi+OCieWni+OBvuOCi+ODqeOCpOODiOOCouODg+ODl+OCpOODmeODs+ODiOOAguOCpOODq+ODn+ODjeODvOOCt+ODp+ODs+OBrumWi+WCrOacn+mWk+OBqOS8muWgtOOCkuahiOWGheOAgizpnZnlsqHnnIwg5rWc5p2+5biCIOS4reWkruWMuuWFrOWckumAmjUtNiwyMDI2LTEyLTA1LGh0dHBzOi8vZGVtby5leGFtcGxlL2xpZ2h0dXAsQmVhdXRpZnVsU291cO+8iEhUTUzvvIks5piO56S66Kqe5Y+l44Gr44KI44KL5YiG6aGeLOimi+WHuuOBl+OBruOAjOOCpOODmeODs+ODiOOAjSzopoHnorroqo3vvIjjg4fjg6LvvIksLOOCteODs+ODl+ODqw0K">CSVを保存する ↗</a>
+    <a class="rf-download" download="researchflow_results.csv" href="#">CSVを保存する ↗</a>
   </div>
   <p class="rf-scroll-hint">表は横方向にスクロールできます。</p>
   <div class="rf-table-wrap">
     <table class="rf-table">
-      <thead><tr><th style="width:25%">施設・ページ名</th><th style="width:14%">分類（編集可）</th><th style="width:27%">抽出した概要</th><th style="width:16%">所在地</th><th>開催日</th><th>確認状況</th></tr></thead>
-      <tbody id="items"><tr data-category="飲食・店舗" data-source-url="https://demo.example/bakery"><td><div class="rf-row-title">月あかり焼菓子店｜季節のタルトとクッキー</div><div class="rf-row-url">https://demo.example/bakery</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント">イベント</option><option value="飲食・店舗" selected>飲食・店舗</option><option value="観光・施設">観光・施設</option><option value="その他">その他</option></select></td><td>愛知県名古屋市の焼き菓子専門店。季節のタルトやクッキーを店頭販売。営業時間は10時から18時、火曜定休。</td><td>愛知県 名古屋市 中区1-2-3</td><td>—</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
-<tr data-category="飲食・店舗" data-source-url="https://demo.example/cafe"><td><div class="rf-row-title">風見草カフェ｜ランチと自家焙煎コーヒー</div><div class="rf-row-url">https://demo.example/cafe</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント">イベント</option><option value="飲食・店舗" selected>飲食・店舗</option><option value="観光・施設">観光・施設</option><option value="その他">その他</option></select></td><td>岐阜県多治見市の古民家カフェ。自家焙煎コーヒーと地元野菜のランチを提供しています。</td><td>岐阜県 多治見市 白川町4-5-6</td><td>—</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
-<tr data-category="観光・施設" data-source-url="https://demo.example/observatory"><td><div class="rf-row-title">南港みはらしテラス｜海の風景を楽しむ展望施設</div><div class="rf-row-url">https://demo.example/observatory</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント">イベント</option><option value="飲食・店舗">飲食・店舗</option><option value="観光・施設" selected>観光・施設</option><option value="その他">その他</option></select></td><td>愛知県蒲郡市の港を見渡せる展望テラス。散策路と撮影スポットを楽しめる観光スポットです。</td><td>愛知県 蒲郡市 海岸町7-8-9</td><td>—</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
-<tr data-category="観光・施設" data-source-url="https://demo.example/museum"><td><div class="rf-row-title">山里歴史資料館｜昔の暮らしと地域文化の展示</div><div class="rf-row-url">https://demo.example/museum</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント">イベント</option><option value="飲食・店舗">飲食・店舗</option><option value="観光・施設" selected>観光・施設</option><option value="その他">その他</option></select></td><td>長野県飯田市の歴史資料館。郷土資料や伝統工芸を紹介する常設展示があります。</td><td>長野県 飯田市 本町2-1-1</td><td>—</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
-<tr data-category="イベント" data-source-url="https://demo.example/market"><td><div class="rf-row-title">駅前クラフトマルシェ2026｜週末イベント</div><div class="rf-row-url">https://demo.example/market</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント" selected>イベント</option><option value="飲食・店舗">飲食・店舗</option><option value="観光・施設">観光・施設</option><option value="その他">その他</option></select></td><td>2026年11月7日に愛知県岡崎市で開催する週末マルシェ。地域の作家による雑貨販売や体験ワークショップを実施。</td><td>愛知県 岡崎市 駅前通り3-2-1</td><td>2026-11-07</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
-<tr data-category="イベント" data-source-url="https://demo.example/lightup"><td><div class="rf-row-title">水辺のあかり祭り｜秋のライトアップ開催</div><div class="rf-row-url">https://demo.example/lightup</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント" selected>イベント</option><option value="飲食・店舗">飲食・店舗</option><option value="観光・施設">観光・施設</option><option value="その他">その他</option></select></td><td>静岡県浜松市で2026年12月5日から始まるライトアップイベント。イルミネーションの開催期間と会場を案内。</td><td>静岡県 浜松市 中央区公園通5-6</td><td>2026-12-05</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr></tbody>
+      <thead><tr><th style="width:32%">ページタイトル</th><th style="width:20%">分類（編集可）</th><th style="width:34%">抽出した概要</th><th>確認状況</th></tr></thead>
+      <tbody id="items"><tr data-category="飲食・店舗" data-source-url="https://demo.example/bakery"><td><div class="rf-row-title">月あかり焼菓子店｜季節のタルトとクッキー</div><div class="rf-row-url">https://demo.example/bakery</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント">イベント</option><option value="飲食・店舗" selected>飲食・店舗</option><option value="観光・施設">観光・施設</option><option value="その他">その他</option></select></td><td>愛知県名古屋市の焼き菓子専門店。季節のタルトやクッキーを店頭販売。営業時間は10時から18時、火曜定休。</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="飲食・店舗" data-source-url="https://demo.example/cafe"><td><div class="rf-row-title">風見草カフェ｜ランチと自家焙煎コーヒー</div><div class="rf-row-url">https://demo.example/cafe</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント">イベント</option><option value="飲食・店舗" selected>飲食・店舗</option><option value="観光・施設">観光・施設</option><option value="その他">その他</option></select></td><td>岐阜県多治見市の古民家カフェ。自家焙煎コーヒーと地元野菜のランチを提供しています。</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="観光・施設" data-source-url="https://demo.example/observatory"><td><div class="rf-row-title">南港みはらしテラス｜海の風景を楽しむ展望施設</div><div class="rf-row-url">https://demo.example/observatory</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント">イベント</option><option value="飲食・店舗">飲食・店舗</option><option value="観光・施設" selected>観光・施設</option><option value="その他">その他</option></select></td><td>愛知県蒲郡市の港を見渡せる展望テラス。散策路と撮影スポットを楽しめる観光スポットです。</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="観光・施設" data-source-url="https://demo.example/museum"><td><div class="rf-row-title">山里歴史資料館｜昔の暮らしと地域文化の展示</div><div class="rf-row-url">https://demo.example/museum</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント">イベント</option><option value="飲食・店舗">飲食・店舗</option><option value="観光・施設" selected>観光・施設</option><option value="その他">その他</option></select></td><td>長野県飯田市の歴史資料館。郷土資料や伝統工芸を紹介する常設展示があります。</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="イベント" data-source-url="https://demo.example/market"><td><div class="rf-row-title">駅前クラフトマルシェ2026｜週末イベント</div><div class="rf-row-url">https://demo.example/market</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント" selected>イベント</option><option value="飲食・店舗">飲食・店舗</option><option value="観光・施設">観光・施設</option><option value="その他">その他</option></select></td><td>2026年11月7日に愛知県岡崎市で開催する週末マルシェ。地域の作家による雑貨販売や体験ワークショップを実施。</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>
+<tr data-category="イベント" data-source-url="https://demo.example/lightup"><td><div class="rf-row-title">水辺のあかり祭り｜秋のライトアップ開催</div><div class="rf-row-url">https://demo.example/lightup</div></td><td><select class="rf-category-edit" aria-label="カテゴリを編集"><option value="企業・団体">企業・団体</option><option value="商品・サービス">商品・サービス</option><option value="採用・求人">採用・求人</option><option value="ニュース・記事">ニュース・記事</option><option value="イベント" selected>イベント</option><option value="飲食・店舗">飲食・店舗</option><option value="観光・施設">観光・施設</option><option value="その他">その他</option></select></td><td>静岡県浜松市で2026年12月5日から始まるライトアップイベント。イルミネーションの開催期間と会場を案内。</td><td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr></tbody>
     </table>
     <div class="rf-empty" id="empty" hidden>該当する項目はありません。</div>
   </div>
@@ -437,7 +437,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
   const fileStatus = document.querySelector('#file-status');
   const csvLink = document.querySelector('.rf-download');
   const original = tbody.innerHTML;
-  const initialCsvHref = csvLink.href;
   let blobUrl = null;
   let errors = 0;
 
@@ -466,12 +465,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
     return '"' + s.replace(/"/g, '""') + '"';
   }
   function makeCsv() {
-    const cols = ['ページタイトル','カテゴリ','概要','所在地','開催日','参照URL','確認状況'];
+    const cols = ['ページタイトル','カテゴリ','概要','参照URL','確認状況'];
     const lines = [cols.map(safeCsvCell).join(',')];
     for (const tr of currentRows()) {
       const status = tr.querySelector('.rf-status-edit')?.value || '要確認';
       if (status === '対象外') continue;
-      const values = [(tr.querySelector('.rf-row-title')?.textContent?.trim() || cellText(tr,0)), tr.dataset.category, cellText(tr,2), cellText(tr,3), cellText(tr,4), tr.dataset.sourceUrl || '', status];
+      const values = [(tr.querySelector('.rf-row-title')?.textContent?.trim() || cellText(tr,0)), tr.dataset.category, cellText(tr,2), tr.dataset.sourceUrl || '', status];
       lines.push(values.map(safeCsvCell).join(','));
     }
     if (blobUrl) URL.revokeObjectURL(blobUrl);
@@ -483,22 +482,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
     return (doc.querySelector(selector)?.getAttribute(attribute) || '').trim();
   }
   function clean(s, max=200) { return String(s || '').replace(/\s+/g,' ').trim().slice(0,max); }
-  function structured(doc) {
-    const result = {location:'',date:''};
-    function walk(v) {
-      if (Array.isArray(v)) { v.forEach(walk); return; }
-      if (!v || typeof v !== 'object') return;
-      if (!result.location) {
-        const place = v.address || (v.location && v.location.address);
-        if (typeof place === 'string') result.location = clean(place,120);
-        else if (place && typeof place === 'object') result.location = clean([place.addressRegion,place.addressLocality,place.streetAddress].filter(x=>typeof x==='string').join(' '),120);
-      }
-      if (!result.date && (v['@type']==='Event' || (Array.isArray(v['@type']) && v['@type'].includes('Event')))) result.date=clean(v.startDate,60);
-      for (const key of ['@graph','mainEntity','itemListElement']) if(v[key])walk(v[key]);
-    }
-    doc.querySelectorAll('script[type="application/ld+json"]').forEach(script => { try {walk(JSON.parse(script.textContent));} catch(e) {} });
-    return result;
-  }
   function classify(text) {
     const title = clean(text.split('\n')[0] || text, 400).toLocaleLowerCase('ja');
     const candidates = [
@@ -520,12 +503,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
     const title = clean(metadata(doc,'meta[property="og:title"]') || doc.querySelector('title')?.textContent || doc.querySelector('h1')?.textContent || fileName);
     const description = clean(metadata(doc,'meta[name="description"]') || metadata(doc,'meta[property="og:description"]'),250);
     const canonical = clean(metadata(doc,'link[rel="canonical"]','href'),400);
-    const structuredFields = structured(doc);
     doc.querySelectorAll('script,style,nav,header,footer,aside,noscript').forEach(node=>node.remove());
     const body=clean(doc.querySelector('main')?.textContent || doc.querySelector('article')?.textContent || doc.body?.textContent,1500);
     const summary = clean(description || body,100);
     if(!title && !body)throw new Error('HTMLの本文が読み取れません');
-    return {title, summary, location:structuredFields.location||'未記載', date:structuredFields.date||'—', category:classify(title+'\n'+description+'\n'+body), url:canonical, status:'要確認'};
+    return {title, summary, category:classify(title+'\n'+description+'\n'+body), url:canonical, status:'要確認'};
   }
   function newCell(tr, text) { const td=document.createElement('td'); td.textContent=text; tr.appendChild(td); return td; }
   function optionSelect(className, options, value, label) {
@@ -539,7 +521,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
       const tr=document.createElement('tr'); tr.dataset.category=item.category; tr.dataset.sourceUrl=item.url;
       const td=newCell(tr,item.title);td.className='rf-row-title';
       const cat=document.createElement('td');cat.appendChild(optionSelect('rf-category-edit',['企業・団体','商品・サービス','採用・求人','ニュース・記事','イベント','飲食・店舗','観光・施設','その他'],item.category,'カテゴリを編集'));tr.appendChild(cat);
-      newCell(tr,item.summary);newCell(tr,item.location);newCell(tr,item.date);
+      newCell(tr,item.summary);
       const status=document.createElement('td');status.appendChild(optionSelect('rf-status-edit',['要確認','確認済み','保留','対象外'],item.status,'確認状況を編集'));tr.appendChild(status);
       tbody.appendChild(tr);
     }
@@ -567,14 +549,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {o
     tbody.innerHTML=original; fileInput.value=''; fileStatus.textContent='初期表示：架空のサンプル6件'; errors=0;
     search.value='';category.value='all';
     if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
-    csvLink.href=initialCsvHref; update();
+    update(); makeCsv();
   });
   tbody.addEventListener('change', event => {
     if(event.target.matches('.rf-category-edit,.rf-status-edit')) { update();makeCsv(); }
   });
   search.addEventListener('input',update);
   category.addEventListener('change',update);
-  update();
+  update(); makeCsv();
 })();
 
 </script>

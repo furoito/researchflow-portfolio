@@ -8,7 +8,7 @@ from .classify import CATEGORIES
 from .process import ResearchRecord
 
 REVIEW_STATES = ("要確認", "確認済み", "保留", "対象外")
-EDITABLE = ("ページタイトル", "カテゴリ", "概要", "所在地", "開催日", "確認状況", "確認メモ")
+EDITABLE = ("ページタイトル", "カテゴリ", "概要", "確認状況", "確認メモ")
 
 
 def apply_review(records: Sequence[ResearchRecord], rows: Sequence[Mapping[str, object]]) -> list[ResearchRecord]:
@@ -33,8 +33,6 @@ def apply_review(records: Sequence[ResearchRecord], rows: Sequence[Mapping[str, 
                 if fields["カテゴリ"] != original.category else original.classification_reason
             ),
             summary=fields["概要"],
-            location=fields["所在地"].replace("未記載", "") if fields["所在地"] == "未記載" else fields["所在地"],
-            event_date="" if fields["開催日"] == "未記載" else fields["開催日"],
             review_status=fields["確認状況"],
             review_note=fields["確認メモ"],
         ))

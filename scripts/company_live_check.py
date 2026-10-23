@@ -127,14 +127,11 @@ def capture_result():
                         "page_purpose_matches": row.get("カテゴリ") == site["expected_category"],
                         "classification_method": row.get("分類方法"),
                         "classification_reason": row.get("分類根拠"),
-                        "location": row.get("所在地"),
-                        "event_date": row.get("開催日"),
                         "input_source": source,
                         "is_partial": "部分取得" in source,
                         "identity_in_title_or_summary": identity,
                         "has_meaningful_summary": len(desc) > 20 and desc != "（概要なし）",
                         "title_is_not_placeholder": len(title.strip()) >= 4 and "タイトルなし" not in title,
-                        "location_explicit": bool(row.get("所在地", "") not in ("", "未記載")),
                     })
                     seen.add(site["url"])
                 report["per_site"].append(entry)
@@ -150,6 +147,10 @@ def capture_result():
             report["checks"]["real_company_rows"] = sum(1 for x in report["per_site"] if x["status"] == "EXPORTED")
             report["checks"]["correct_purpose_categories"] = sum(
                 1 for x in report["per_site"] if x.get("page_purpose_matches")
+            )
+            report["checks"]["obsolete_fields_absent"] = (
+                len(report["rows"]) == len(PAGES)
+                and all("所在地" not in r and "開催日" not in r for r in report["rows"])
             )
             report["checks"]["all_rows_have_explanations"] = (
                 len(report["rows"]) == len(PAGES)
@@ -180,7 +181,8 @@ def capture_result():
           and report["checks"].get("no_sample_rows") is True
           and report["checks"].get("new_classification_ui") is True
           and report["checks"].get("correct_purpose_categories", 0) == len(PAGES)
-          and report["checks"].get("all_rows_have_explanations") is True)
+          and report["checks"].get("all_rows_have_explanations") is True
+          and report["checks"].get("obsolete_fields_absent") is True)
     if not ok:
         raise SystemExit(1)
 

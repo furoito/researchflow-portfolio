@@ -36,8 +36,7 @@ def build() -> None:
         '<td><div class="rf-row-title">' + esc(record.title) + '</div><div class="rf-row-url">' + esc(record.url) + '</div></td>' +
         '<td><select class="rf-category-edit" aria-label="カテゴリを編集">' + ''.join('<option value="' + esc(category) + '"' + (' selected' if category == record.category else '') + '>' + esc(category) + '</option>' for category in CATEGORIES) + '</select></td>' +
         '<td>' + esc(record.summary) + '</td>' +
-        '<td>' + esc(record.location or "記載なし") + '</td>' +
-        '<td>' + esc(record.event_date or "—") + '</td>' + '<td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>'
+        '<td><select class="rf-status-edit" aria-label="確認状況を編集"><option>要確認</option><option>確認済み</option><option>保留</option><option>対象外</option></select></td></tr>'
         for record in records
     )
     template = (ROOT / "templates" / "preview_template.html").read_text(encoding="utf-8")

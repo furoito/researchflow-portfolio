@@ -160,7 +160,7 @@ def test_large_embedded_code_is_removed_and_title_and_jsonld_preserved(monkeypat
     assert not errors
     assert len(records)==1
     assert records[0].title == '秋祭りの案内'
-    assert records[0].event_date == '2027-01-15'
+    assert '秋祭り' in records[0].title
 
 
 def test_giant_prose_is_processed_as_labeled_partial(monkeypatch):

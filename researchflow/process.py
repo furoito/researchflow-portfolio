@@ -12,7 +12,7 @@ from .extract import ExtractedPage, extract_page, extracted_summary
 from .gemini import enrich_with_gemini
 
 MAX_DOCUMENTS = 8
-EXPORT_COLUMNS = ["ページタイトル", "カテゴリ", "概要", "所在地", "開催日", "参照URL", "抽出方法", "分類方法", "分類根拠", "確認状況", "確認メモ", "入力元"]
+EXPORT_COLUMNS = ["ページタイトル", "カテゴリ", "概要", "参照URL", "抽出方法", "分類方法", "分類根拠", "確認状況", "確認メモ", "入力元"]
 
 
 @dataclass(frozen=True)
@@ -20,8 +20,6 @@ class ResearchRecord:
     title: str
     category: str
     summary: str
-    location: str
-    event_date: str
     url: str
     extraction_method: str
     categorization_method: str
@@ -37,8 +35,6 @@ class ResearchRecord:
             "ページタイトル": self.title,
             "カテゴリ": self.category,
             "概要": self.summary,
-            "所在地": self.location or "未記載",
-            "開催日": self.event_date or "未記載",
             "参照URL": self.url or "（入力なし）",
             "抽出方法": self.extraction_method,
             "分類方法": self.categorization_method,
@@ -64,8 +60,6 @@ def make_record(page: ExtractedPage, *, mode: str = "local", api_key: str = "") 
         title=page.title,
         category=category,
         summary=summary,
-        location=page.location,
-        event_date=page.event_date,
         url=page.source_url,
         extraction_method="BeautifulSoup（HTML）",
         categorization_method=method,

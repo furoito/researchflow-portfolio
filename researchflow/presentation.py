@@ -24,7 +24,7 @@ HERO = """
     <div class="rf-hero-lower">
       <div class="rf-hero-copy">
         <span class="rf-mini-index">WHAT IS RESEARCHFLOW?</span>
-        <p class="rf-hero-lead">公開ページのURLや保存したHTMLから、タイトルや所在地などを抽出します。<br class="rf-only-desktop"/>自動分類した結果を確認・修正し、CSVで保存できます。</p>
+        <p class="rf-hero-lead">公開ページのURLや保存したHTMLから、タイトルと概要を抽出します。<br class="rf-only-desktop"/>自動分類した結果を確認・修正し、CSVで保存できます。</p>
         <span class="rf-hero-micro">実際の公開URLに対応 ／ 標準モードはAPIキー不要</span>
       </div>
       <a href="#demo" class="rf-action-primary" aria-label="See the research demo"><span>結果を<br>見る</span><b aria-hidden="true">&#8599;</b></a>
@@ -52,7 +52,7 @@ WORKFLOW = """
     <article class="rf-workflow-item">
        <span class="rf-step-no">01</span>
        <h3>抽出<small>EXTRACT</small></h3>
-       <p>公開URLまたはHTMLファイルから、タイトル・所在地・開催日などを取得します。</p>
+       <p>公開URLまたはHTMLファイルから、タイトル・概要・本文から情報を抽出します。</p>
        <span class="rf-step-arrow" aria-hidden="true">&#8599;</span>
     </article>
     <article class="rf-workflow-item">
