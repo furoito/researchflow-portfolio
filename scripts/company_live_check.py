@@ -81,6 +81,12 @@ def capture_result():
             button.click(timeout=25000)
             frame.get_by_role("heading", name="収集・分類結果").wait_for(timeout=180000)
             report["checks"]["result_panel_visible"] = True
+            # Streamlit progressively renders the results after a rerun. An
+            # existing heading can become visible before metrics/editor/download.
+            frame.get_by_role("button", name="修正結果をCSVで保存").wait_for(
+                state="visible", timeout=130000
+            )
+            report["checks"]["results_ready"] = True
             page.screenshot(path=str(OUT / "after-run.png"), full_page=True)
 
             content = frame.locator("body").inner_text(timeout=9000)
