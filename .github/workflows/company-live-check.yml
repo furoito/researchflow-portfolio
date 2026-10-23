@@ -1,0 +1,33 @@
+name: ResearchFlow company site verification
+
+on:
+  push:
+    paths:
+      - '.github/workflows/company-live-check.yml'
+      - 'scripts/company_live_check.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  company-site-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Playwright driver
+        run: |
+          python3 -m pip install --quiet playwright
+          command -v google-chrome
+      - name: Run live company site checks and inspect exported CSV
+        env:
+          RESEARCHFLOW_LIVE_URL: https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/
+        run: python3 scripts/company_live_check.py
+      - name: Preserve actual CSV, screenshot, and structured report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: corporate-site-output
+          path: corporate-test-results/
+          if-no-files-found: ignore
