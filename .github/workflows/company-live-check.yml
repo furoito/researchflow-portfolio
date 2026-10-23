@@ -5,6 +5,9 @@ on:
     paths:
       - '.github/workflows/company-live-check.yml'
       - 'scripts/company_live_check.py'
+      - 'app.py'
+      - 'researchflow/**'
+      - 'tests/test_classification_business.py'
   workflow_dispatch:
 
 permissions:

@@ -13,6 +13,28 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+# Streamlit can rerun app.py on a git deploy while retaining already-imported
+# Python package modules in the server process. Reload only when a v0.7
+# classifier or export schema is still cached, before importing symbols.
+from importlib import reload
+import researchflow.classify as _classify_module
+import researchflow.gemini as _gemini_module
+import researchflow.process as _process_module
+import researchflow.workflow as _workflow_module
+
+_EXPECTED_CATEGORIES = (
+    "企業・団体", "商品・サービス", "採用・求人", "ニュース・記事",
+    "イベント", "飲食・店舗", "観光・施設", "その他",
+)
+if (
+    tuple(_classify_module.CATEGORIES) != _EXPECTED_CATEGORIES
+    or "分類根拠" not in _process_module.EXPORT_COLUMNS
+):
+    reload(_classify_module)
+    reload(_gemini_module)
+    reload(_process_module)
+    reload(_workflow_module)
+
 from researchflow.classify import TRAINING_SAMPLES, CATEGORIES
 from researchflow.presentation import DEMO_INTRO, FEATURE, FOOTER, HERO, SITE_HEADER, WORKFLOW
 from researchflow.process import process_sources, to_csv_bytes
