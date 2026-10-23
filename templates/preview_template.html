@@ -42,9 +42,13 @@
       <input class="rf-filter" id="search" type="search" placeholder="タイトル・概要から検索" aria-label="タイトル・概要から検索">
       <select class="rf-filter" id="category" aria-label="カテゴリで絞り込む">
         <option value="all">すべてのカテゴリ</option>
-        <option value="グルメ">グルメ</option>
-        <option value="観光">観光</option>
+        <option value="企業・団体">企業・団体</option>
+        <option value="商品・サービス">商品・サービス</option>
+        <option value="採用・求人">採用・求人</option>
+        <option value="ニュース・記事">ニュース・記事</option>
         <option value="イベント">イベント</option>
+        <option value="飲食・店舗">飲食・店舗</option>
+        <option value="観光・施設">観光・施設</option>
         <option value="その他">その他</option>
       </select>
     </div>
@@ -160,14 +164,20 @@
     return result;
   }
   function classify(text) {
-    const patterns = [
-      ['イベント',/イベント|開催|フェス|祭り|マルシェ|ワークショップ|企画展|チケット|開催日|ライトアップ/g],
-      ['グルメ',/レストラン|カフェ|喫茶|ベーカリー|パン屋|ランチ|スイーツ|ケーキ|食堂|飲食|お菓子|テイクアウト/g],
-      ['観光',/観光|展望|史跡|神社|庭園|美術館|資料館|水族館|散策|見学|公園|景色/g]
+    const title = clean(text.split('\n')[0] || text, 400).toLocaleLowerCase('ja');
+    const candidates = [
+      ['採用・求人',/採用|求人|募集要項|募集職種|インターン|recruit|careers/i],
+      ['ニュース・記事',/プレスリリース|ニュース|お知らせ|記事|ブログ|コラム|news/i],
+      ['イベント',/イベント|開催|フェス|祭り|マルシェ|ワークショップ|企画展|ライトアップ|セミナー/i],
+      ['企業・団体',/会社概要|企業概要|会社案内|会社情報|企業情報|運営会社|団体概要|組織概要|company profile/i],
+      ['商品・サービス',/サービス|製品|プロダクト|商品紹介|料金プラン|web制作|ホームページ制作|pricing/i],
+      ['飲食・店舗',/レストラン|カフェ|喫茶|ベーカリー|パン屋|ランチ|スイーツ|ケーキ|食堂|飲食|焼き菓子/i],
+      ['観光・施設',/観光|展望|史跡|神社|庭園|美術館|資料館|水族館|散策|見学|公園/i]
     ];
-    const scores = patterns.map(([name,re])=>[name, (text.match(re)||[]).length]);
-    scores.sort((a,b)=>b[1]-a[1]);
-    return scores[0][1]>0?scores[0][0]:'その他';
+    const primary = title.split(/[|｜│]|\s[-–—]\s/)[0];
+    const exact = candidates.filter(([,regex])=>regex.test(primary));
+    if (exact.length === 1) return exact[0][0];
+    return 'その他'; // Static preview is not the trained Python classifier.
   }
   function parseHtml(raw, fileName) {
     const doc = new DOMParser().parseFromString(raw,'text/html');
@@ -179,7 +189,7 @@
     const body=clean(doc.querySelector('main')?.textContent || doc.querySelector('article')?.textContent || doc.body?.textContent,1500);
     const summary = clean(description || body,100);
     if(!title && !body)throw new Error('HTMLの本文が読み取れません');
-    return {title, summary, location:structuredFields.location||'未記載', date:structuredFields.date||'—', category:classify(title+' '+description+' '+body), url:canonical, status:'要確認'};
+    return {title, summary, location:structuredFields.location||'未記載', date:structuredFields.date||'—', category:classify(title+'\n'+description+'\n'+body), url:canonical, status:'要確認'};
   }
   function newCell(tr, text) { const td=document.createElement('td'); td.textContent=text; tr.appendChild(td); return td; }
   function optionSelect(className, options, value, label) {
@@ -192,7 +202,7 @@
     for(const item of items){
       const tr=document.createElement('tr'); tr.dataset.category=item.category; tr.dataset.sourceUrl=item.url;
       const td=newCell(tr,item.title);td.className='rf-row-title';
-      const cat=document.createElement('td');cat.appendChild(optionSelect('rf-category-edit',['グルメ','観光','イベント','その他'],item.category,'カテゴリを編集'));tr.appendChild(cat);
+      const cat=document.createElement('td');cat.appendChild(optionSelect('rf-category-edit',['企業・団体','商品・サービス','採用・求人','ニュース・記事','イベント','飲食・店舗','観光・施設','その他'],item.category,'カテゴリを編集'));tr.appendChild(cat);
       newCell(tr,item.summary);newCell(tr,item.location);newCell(tr,item.date);
       const status=document.createElement('td');status.appendChild(optionSelect('rf-status-edit',['要確認','確認済み','保留','対象外'],item.status,'確認状況を編集'));tr.appendChild(status);
       tbody.appendChild(tr);

@@ -7,12 +7,12 @@ from dataclasses import asdict, dataclass
 from io import StringIO
 import re
 
-from .classify import classify_local
+from .classify import classify_page
 from .extract import ExtractedPage, extract_page, extracted_summary
 from .gemini import enrich_with_gemini
 
 MAX_DOCUMENTS = 8
-EXPORT_COLUMNS = ["ページタイトル", "カテゴリ", "概要", "所在地", "開催日", "参照URL", "抽出方法", "分類方法", "確認状況", "確認メモ", "入力元"]
+EXPORT_COLUMNS = ["ページタイトル", "カテゴリ", "概要", "所在地", "開催日", "参照URL", "抽出方法", "分類方法", "分類根拠", "確認状況", "確認メモ", "入力元"]
 
 
 @dataclass(frozen=True)
@@ -30,6 +30,7 @@ class ResearchRecord:
     review_note: str = ""
     source_kind: str = ""
     evidence_excerpt: str = ""
+    classification_reason: str = ""
 
     def display_dict(self) -> dict:
         return {
@@ -41,6 +42,7 @@ class ResearchRecord:
             "参照URL": self.url or "（入力なし）",
             "抽出方法": self.extraction_method,
             "分類方法": self.categorization_method,
+            "分類根拠": self.classification_reason,
             "確認状況": self.review_status,
             "確認メモ": self.review_note,
             "入力元": self.source_kind or "未指定",
@@ -48,12 +50,15 @@ class ResearchRecord:
 
 
 def make_record(page: ExtractedPage, *, mode: str = "local", api_key: str = "") -> ResearchRecord:
-    category, score = classify_local(page.model_input)
+    classified = classify_page(title=page.title, description=page.description, heading=page.heading, body=page.body, url=page.source_url)
+    category, score = classified.category, classified.ml_score
     summary = extracted_summary(page)
-    method = "ローカル軽量ML（無料）"
+    method = classified.method
+    reason = classified.rationale
     if mode == "gemini":
         category, summary = enrich_with_gemini(page.title, page.model_input, api_key=api_key)
         method = "Gemini 2.5 Flash-Lite（API）"
+        reason = "外部AIによる推定（原文で確認してください）"
         score = None
     return ResearchRecord(
         title=page.title,
@@ -65,9 +70,13 @@ def make_record(page: ExtractedPage, *, mode: str = "local", api_key: str = "") 
         extraction_method="BeautifulSoup（HTML）",
         categorization_method=method,
         review_status="要確認（デモ）" if page.source_type == "demo-html" else "要確認",
-        review_note=("大きなページの先頭部分のみ解析しました。元ページで内容を確認してください。" if page.source_type == "web-url-partial" else ""),
+        review_note=" ".join(note for note in (
+            "大きなページの先頭部分のみ解析しました。元ページで内容を確認してください。" if page.source_type == "web-url-partial" else "",
+            "分類の根拠が弱いためカテゴリを確認してください。" if mode == "local" and classified.needs_review else "",
+        ) if note),
         source_kind={"web-url": "公開URL", "web-url-partial": "公開URL（部分取得）", "uploaded-html": "HTMLファイル", "demo-html": "サンプル"}.get(page.source_type, page.source_type),
         evidence_excerpt=(page.description or page.heading or page.body)[:230],
+        classification_reason=reason,
         ml_score=score,
     )
 

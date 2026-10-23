@@ -28,6 +28,10 @@ def apply_review(records: Sequence[ResearchRecord], rows: Sequence[Mapping[str, 
             original,
             title=fields["ページタイトル"],
             category=fields["カテゴリ"],
+            classification_reason=(
+                f"手動修正（自動判定: {original.category}）"
+                if fields["カテゴリ"] != original.category else original.classification_reason
+            ),
             summary=fields["概要"],
             location=fields["所在地"].replace("未記載", "") if fields["所在地"] == "未記載" else fields["所在地"],
             event_date="" if fields["開催日"] == "未記載" else fields["開催日"],

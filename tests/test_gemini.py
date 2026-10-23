@@ -22,9 +22,9 @@ class FakeClient:
 
 
 def test_gemini_mocked_success():
-    client = FakeClient({"candidates": [{"content": {"parts": [{"text": '{"category":"観光","summary":"港を見渡せる展望施設。"}'}]}}]})
+    client = FakeClient({"candidates": [{"content": {"parts": [{"text": '{"category":"観光・施設","summary":"港を見渡せる展望施設。"}'}]}}]})
     label, summary = enrich_with_gemini("展望", "観光施設の紹介文", api_key="fake", session=client)
-    assert (label, summary) == ("観光", "港を見渡せる展望施設。")
+    assert (label, summary) == ("観光・施設", "港を見渡せる展望施設。")
     assert client.last_request[1]["headers"]["x-goog-api-key"] == "fake"
     assert client.last_request[1]["timeout"] == (5, 20)
 

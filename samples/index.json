@@ -4,28 +4,28 @@
     "label": "焼き菓子専門店",
     "file": "01_bakery.html",
     "url": "https://demo.example/bakery",
-    "expected_category": "グルメ"
+    "expected_category": "飲食・店舗"
   },
   {
     "id": "02_cafe",
     "label": "古民家カフェ",
     "file": "02_cafe.html",
     "url": "https://demo.example/cafe",
-    "expected_category": "グルメ"
+    "expected_category": "飲食・店舗"
   },
   {
     "id": "03_observatory",
     "label": "展望施設",
     "file": "03_observatory.html",
     "url": "https://demo.example/observatory",
-    "expected_category": "観光"
+    "expected_category": "観光・施設"
   },
   {
     "id": "04_museum",
     "label": "歴史資料館",
     "file": "04_museum.html",
     "url": "https://demo.example/museum",
-    "expected_category": "観光"
+    "expected_category": "観光・施設"
   },
   {
     "id": "05_market",

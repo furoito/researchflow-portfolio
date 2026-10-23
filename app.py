@@ -149,14 +149,14 @@ with col2:
     mode_choice = st.radio("分類方式", modes, label_visibility="collapsed", key="mode_choice")
     mode = "gemini" if mode_choice.startswith("Gemini") else "local"
     st.markdown(
-        '<div class="rf-subtle-note">標準は小規模な学習例で作った分類モデルです。'
-        'カテゴリは推定値のため、結果を確認して修正できます。</div>',
+        '<div class="rf-subtle-note">ページの用途に沿って「企業・団体」「商品・サービス」「採用・求人」など8カテゴリに分類します。'
+        'タイトルの明示語句を優先し、判断が難しい場合は分類を保留します。結果は編集できます。</div>',
         unsafe_allow_html=True,
     )
     if remote_enabled:
         st.warning("Gemini利用時は外部へ本文を送信します。公開可能なデータに限定してください。")
     else:
-        st.caption("ローカル分類では外部AIに本文を送信しません。概要は抽出型で、生成AIによる文章生成ではありません。")
+        st.caption("分類は明示語句と小規模なローカル機械学習を併用します。外部AIに本文は送信しません。分類精度は未評価です。")
 
 count = len(input_urls) if input_choice == "公開URLを取得" else len(sources)
 st.markdown(f'<div class="rf-meta-line">INPUT / RUN　 ·　処理対象：{count}件</div>', unsafe_allow_html=True)
@@ -200,7 +200,7 @@ if records is not None:
         editable = st.data_editor(
             data, hide_index=True, use_container_width=True, num_rows="fixed",
             height=min(420, 47 * (len(data) + 1) + 25),
-            disabled=["参照URL", "抽出方法", "分類方法", "入力元"],
+            disabled=["参照URL", "抽出方法", "分類方法", "分類根拠", "入力元"],
             column_config={
                 "カテゴリ": st.column_config.SelectboxColumn("カテゴリ", options=list(CATEGORIES), required=True),
                 "確認状況": st.column_config.SelectboxColumn(
@@ -208,6 +208,7 @@ if records is not None:
                 ),
                 "参照URL": st.column_config.TextColumn("参照URL", width="large"),
                 "概要": st.column_config.TextColumn("概要", width="large"),
+                "分類根拠": st.column_config.TextColumn("分類根拠", width="medium"),
                 "確認メモ": st.column_config.TextColumn("確認メモ", width="medium"),
             },
             key=f'review_table_{st.session_state.get("result_serial", 0)}',
@@ -227,10 +228,10 @@ if records is not None:
         except ValueError as exc:
             st.error(f"入力内容を確認してください：{exc}")
         with st.expander("抽出根拠と分類方式を見る"):
-            st.caption("概要は原文からの抽出、分類は推定です。分類スコアは正確性の保証ではありません。")
+            st.caption("概要は原文からの抽出、分類は推定です。分類根拠を確認できます。スコアは正確性の保証ではありません。")
             for index, record in enumerate(records, 1):
                 st.text(f"{index}. {record.title}")
-                st.caption(f"取得元：{record.source_kind} ／ 分類方式：{record.categorization_method}")
+                st.caption(f"取得元：{record.source_kind} ／ 分類方式：{record.categorization_method} ／ 分類根拠：{record.classification_reason}")
                 if record.url:
                     st.code(record.url, language=None)
                 if record.ml_score is not None:
@@ -263,7 +264,7 @@ with tab_structure:
     st.markdown("""
 - 公開URLの一括取得（最大8件）、HTMLアップロード、サンプル利用
 - BeautifulSoupによるタイトル・説明文・JSON-LD情報の抽出
-- 日本語文字n-gram＋ロジスティック回帰によるローカル分類
+- ページ用途に沿った8分類。タイトル等の明示語句＋日本語文字n-gramモデルを併用し、判断困難な結果は保留
 - 重複除外、取得エラー処理、編集可能な確認表、日本語CSV書き出し
 - Gemini API用の任意実装（鍵の設定と明示的な有効化が必要）
 """)

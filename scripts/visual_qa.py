@@ -27,7 +27,7 @@ with sync_playwright() as p:
         assert page.evaluate('window.location.hash') == '#demo'
         target_top=page.evaluate('document.querySelector("#demo").getBoundingClientRect().top')
         assert abs(target_top) < height/2, f"CTA misses destination in {label}: {target_top}"
-        page.select_option('#category','観光')
+        page.select_option('#category','観光・施設')
         assert page.locator('#items tr:visible').count()==2
         page.select_option('#category','all')
         page.fill('#search','資料館')

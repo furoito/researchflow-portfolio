@@ -58,7 +58,7 @@ WORKFLOW = """
     <article class="rf-workflow-item">
        <span class="rf-step-no">02</span>
        <h3>分類<small>CLASSIFY</small></h3>
-       <p>無料のローカル分類モデルでジャンルを推定します。正確性は確認が必要です。</p>
+       <p>ページの用途を、明示語句とローカル分類モデルで整理します。曖昧な結果は確認できます。</p>
        <span class="rf-step-arrow" aria-hidden="true">&#8599;</span>
     </article>
     <article class="rf-workflow-item">

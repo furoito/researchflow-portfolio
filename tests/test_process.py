@@ -11,7 +11,8 @@ def test_complete_sample_pipeline(samples):
     assert errors == []
     assert [r.category for r in records].count("イベント") == 2
     assert all(r.review_status == "要確認（デモ）" for r in records)
-    assert all(r.categorization_method == "ローカル軽量ML（無料）" for r in records)
+    assert all(r.categorization_method in ("明示語句による分類", "ローカル軽量ML（暫定）", "分類保留", "URL構造による分類") for r in records)
+    assert all(r.classification_reason for r in records)
     csv_bytes = to_csv_bytes(records)
     assert csv_bytes[:3] == b"\xef\xbb\xbf"
     content = csv_bytes.decode("utf-8-sig")
