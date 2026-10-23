@@ -2,6 +2,8 @@
 
 **公開アプリ：** https://researchflow-portfolio-msr4p7iwappfodx5am4eshb.streamlit.app/
 
+**v0.8 公開実測：** ARTVIBES（会社案内・トップページ）、サイボウズ、さくらインターネット、はてなの実在5ページを一括取得し、CSVまで出力。会社情報4件を「企業・団体」、Web制作トップページ1件を「商品・サービス」に分類し、5件とも「分類根拠」を保存しました。[GitHub Actionsの実行結果](https://github.com/furoito/researchflow-portfolio/actions/runs/40001752965) ／ [テスト76件の結果](https://github.com/furoito/researchflow-portfolio/actions/runs/40001598736)。
+
 **公開環境で確認済み（2026-10-23）：** Streamlitの画面表示、サンプルHTML 6件の抽出・分類とCSV保存、および**実在する公開URL `https://example.com/` のHTTP取得 → タイトル・本文抽出 → ローカル分類 → CSV保存**。CSVにはタイトル `Example Domain`、参照URL `https://example.com/`、入力元 `公開URL` が保存されました。[GitHub Actionsの実URL E2E検証結果](https://github.com/furoito/researchflow-portfolio/actions/runs/39825897356)。取得可能性はサイトごとのrobots.txtやアクセス制限に左右されます。
 
 
